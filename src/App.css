@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@import "locomotive-scroll/dist/locomotive-scroll.css";
+
+
+* {
+    margin:0;
+    /* background-color:black; */
+}
