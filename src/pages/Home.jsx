@@ -11,7 +11,7 @@ import Testimonials from '../Component/Testimonials'
 import Navbar from '../Component/Navbar'
 import Service from '../Component/Service'
 import Process from '../Component/Process'
-import Why from '../Component/why'
+import Why from '../Component/Why'
 import Footer from '../Component/Footer'
 import ScrollToTopButton from '../Component/ScrollToTopButton'
 import LocomotiveScroll from 'locomotive-scroll';
