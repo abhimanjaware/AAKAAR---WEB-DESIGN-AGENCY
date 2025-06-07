@@ -18,6 +18,7 @@ function Showcase() {
 
   const [gridSettings, setGridSettings] = useState({ gap: 170, count: 28, cellSize: 170 });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const projects = [
     {
       id: "SparrowTeck",
@@ -157,9 +158,8 @@ function Showcase() {
 
     const ctx = gsap.context(() => {
       // Create a timeline for better performance
-      const tl = gsap.timeline();
       
-      projects.forEach((project, index) => {
+      projects.forEach((project) => {
         const triggerEl = `.${project.id}-Showcase`;
         const faceEl = `.${project.id}-Face`;
         const infoEl = `.${project.id}-Info`;
@@ -265,7 +265,7 @@ function Showcase() {
   );
 
   return (
-    <div ref={showcaseRef} className="bg-[#1e110a] overflow-hidden w-full relative" id="showcase-section">
+    <div ref={showcaseRef} className="bg-[#1e110a] overflow-hidden py-32 w-full relative" id="showcase-section">
       <div className=" md:px-16 lg:px-24 flex flex-col gap-24 md:gap-32 lg:gap-36 pt-32 justify-start items-start  lg:justify-center lg:items-center w-full relative z-10 ">
         {projects.map((project, index) => (
           <div
@@ -310,3 +310,4 @@ function Showcase() {
 }
 
 export default Showcase;
+

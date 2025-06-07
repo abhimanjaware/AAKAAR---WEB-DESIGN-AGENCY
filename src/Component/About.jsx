@@ -675,9 +675,9 @@ useEffect(() => {
         />
         <img
           className="w-full h-full object-cover object-center  absolute top-0 left-0 opacity-0 active:opacity-100  focus:opacity-100 transition-opacity duration-300 ease-in"
-          src={alternate}
+          src={main}
           // style={{saturate:"50"}}
-          // alt={alternate}
+          // alt={main}
           tabIndex="0"
         />
         <div
@@ -760,9 +760,9 @@ useEffect(() => {
         />
         <img
           className="w-full h-full object-cover object-center absolute top-0 left-0 opacity-0 hover:opacity-100 active:opacity-100 focus:opacity-100 transition-opacity duration-300 ease-in"
-          src={alternate}
+          src={main}
 
-          alt="Abhiman alternate image"
+          alt="Abhiman main image"
           tabIndex="0"
         />
         <div
@@ -858,9 +858,9 @@ useEffect(() => {
       {/* Second image (replacement) - initially invisible */}
       <img
         className="w-full h-full opacity-0 hover:opacity-100 focus:opacity-100 active:opacity-100 transition-opacity ease-in duration-300 absolute top-0 left-0"
-        style={{ objectFit: "cover", objectPosition: "center 75%" }}
-        src={alternate}
-        alt="Abhiman alternate image"
+        style={{ objectFit: "cover", objectPosition: "bottom" }}
+        src={main}
+        alt="Abhiman main image"
         tabIndex="0"
       />
       {/* Empty div for maintaining aspect ratio and dimensions */}

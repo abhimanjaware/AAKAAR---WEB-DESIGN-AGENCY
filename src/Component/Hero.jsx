@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useGSAP } from "@gsap/react";
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import deskim from "../assets/images/hero-desk.png"
+import mobim from "../assets/images/hero-mob.png"
+
 
 // Register the ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -301,14 +304,14 @@ export default function Hero() {
           >
             <img 
               className="h-full w-full object-cover hidden lg:block object-center" 
-              src="src\assets\images\hero-desk.png" 
+              src={deskim} 
               alt="Hero background" 
               style={{filter: 'drop-shadow(10px 10px #555)'}}
             />
 
              <img 
               className="h-full w-full object-cover  lg:hidden object-center" 
-              src="src\assets\images\hero-mob.png" 
+              src={mobim} 
               alt="Hero background" 
               style={{filter: 'drop-shadow(10px 10px #555)'}}
             />
