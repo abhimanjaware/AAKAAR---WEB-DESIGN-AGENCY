@@ -24,7 +24,7 @@ function Home() {
   return (
     <div className='bg-[#1e110a] overflow-x-hidden'>
 
-     {/* <ScrollToTopButton/>
+     <ScrollToTopButton/>
     
      <Loader/>
        <Navbar/>
@@ -33,14 +33,14 @@ function Home() {
    
        
        <About/> 
-      <Showcase/>  */}
+      {/* <Showcase/>  */}
        <Projects/>
        
-       {/* <Process/>
+       <Process/>
        <Service/>
        <Why/>
        <Testimonials/>
-       <Footer/> */}
+       <Footer/>
        {/* <Button/>
 
       {/* <Counter/> */}
