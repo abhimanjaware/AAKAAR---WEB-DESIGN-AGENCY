@@ -18,6 +18,7 @@ function Footer() {
     textRefs.current = [];
 
     const ctx = gsap.context(() => {
+      // Set initial states immediately to prevent layout shifts
       gsap.set(textRefs.current, {
         y: 100,
         opacity: 0,
@@ -37,6 +38,16 @@ function Footer() {
       gsap.set(footerLastRef.current, {
         y: 30,
         opacity: 0,
+      });
+
+      // Set container to be immediately visible to prevent flash
+      gsap.set(mainContainerRef.current, {
+        opacity: 1,
+      });
+
+      gsap.set('.footer-head', {
+        scale: 1,
+        opacity: 1,
       });
 
       // Main entrance timeline
@@ -100,36 +111,6 @@ function Footer() {
           scrub: true,
         },
       });
-
-      // Background and heading scale-in
-      gsap.fromTo(
-        mainContainerRef.current,
-        { opacity: 0 },
-        {
-          opacity: 1,
-          duration: 1.5,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: footerContentRef.current,
-            start: 'top 90%',
-          },
-        }
-      );
-
-      gsap.fromTo(
-        '.footer-head',
-        { scale: 0.97, opacity: 0 },
-        {
-          scale: 1,
-          opacity: 1,
-          duration: 1,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: footerContentRef.current,
-            start: 'top 90%',
-          },
-        }
-      );
 
       // Floating text effect
       textRefs.current.forEach((el, index) => {
@@ -211,13 +192,13 @@ function Footer() {
   };
 
   return (
-    <div  id="contact" ref={mainContainerRef} className="overflow-hidden px-3 bg-[#1e110a]">
+    <div id="contact" ref={mainContainerRef} className="overflow-hidden px-3 bg-[#1e110a]">
       <div
         ref={footerContentRef}
         className="footer-content min-h-screen w-full relative bg-[#1e110a]"
       >
         <div
-          className="footer-head leading-none w-fit h-[70vh]  flex flex-col px-[8rem] md:px-[5rem] sm:px-[2rem] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+          className="footer-head leading-none w-fit h-[70vh] flex flex-col px-[8rem] md:px-[5rem] sm:px-[2rem] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         >
           <div className="letstext overflow-hidden">
             <p

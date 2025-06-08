@@ -200,7 +200,7 @@ const Navbar = () => {
   return (
     <>
       {/* Fixed Navigation Bar */}
-      <nav className="fixed top-0 w-full py-4 px-3 flex justify-between items-center z-30">
+      <nav className="fixed top-0 w-full py-2 px-3 flex justify-between items-center z-30">
         <div className="absolute inset-0 bg-yellow-500/0 z-[-1] mix-blend-difference pointer-events-none"></div>
 
         <div className="logo text-white text-xl leading-none font-medium">
@@ -248,25 +248,25 @@ const Navbar = () => {
       <div className="page-transition-2 fixed top-0 left-0 w-screen h-screen bg-[#27170e] z-60 transform translate-y-full"></div>
 
       {/* Fixed Menu Overlay */}
-      <div className={`overlay fixed top-0 left-0 w-screen h-screen bg-black z-20 overflow-hidden ${isActive ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+      <div className={`overlay fixed top-0 left-0  w-screen h-screen bg-black z-20 overflow-hidden ${isActive ? 'pointer-events-auto' : 'pointer-events-none'}`}>
         <div className="overlay-1 absolute top-0 left-0 w-full h-full bg-[#d9d9d9a2] z-10" />
         <div className="overlay-2 absolute top-0 left-0 w-full h-full bg-[#27170e] z-20" />
         
-        <div className="content-wrapper px-0 pt-4 leading-none fixed top-0 left-0 z-30 w-full h-full">
-          <div className="relative w-full flex top-0 flex-col md:flex-row items-end justify-around md:items-center md:gap-10 lg:gap-20 xl:gap-96 p-8 md:p-16 lg:p-32 h-full overflow-hidden">
-            <div className="md:flex-row md:gap-2.5 flex flex-col justify-end">
-              <div className="main-menu-lists w-full md:w-[70%] lg:w-[90%] md:pr-10 lg:pr-40 md:border-r-[1px] border-zinc-500">
+        <div className="content-wrapper  px-0 pt-4 leading-none fixed top-0 left-0 z-30 w-full h-full">
+          <div className="relative w-full  flex top-0 flex-col md:flex-row items-end justify-around md:items-center md:gap-10 lg:gap-20 xl:gap-96 p-8 md:p-16 lg:p-32 h-full overflow-hidden">
+            <div className="md:flex-row  md:gap-2.5 flex flex-col justify-end">
+              <div className="main-menu-lists w-full  flex flex-col items-end  md:w-[70%] lg:w-[90%] md:pr-10 lg:pr-40 md:border-r-[1px] border-zinc-500">
                 {menuItems.map((item, index) => (
                   <NavLink 
                     key={index}
                     item={item} 
-                    className="m-2 pt-6 pr-0 lg:pr-8 gap-2" 
-                    textSize="text-5xl md:text-8xl lg:text-[7vw] text-[#D9D9D9]" 
+                    className="m-2 pt-2 mt-0  pr-0 lg:pr-8  gap-5" 
+                    textSize="text-5xl md:text-8xl lg:text-[6vw] text-[#D9D9D9]" 
                   />
                 ))}
               </div>
 
-              <div className="nav-right w-full pt-8 lg:pl-24 md:w-[40%] lg:w-[50%] lg:items-center mt-10 md:mt-0 h-auto md:justify-end md:items-end flex flex-col items-center justify-center">
+              <div className="nav-right  w-full pt-8 lg:pl-24 md:w-[40%] lg:w-[50%] lg:items-center mt-10 md:mt-0 h-auto md:justify-end md:items-end flex flex-col items-center justify-center">
                 <div className="nav-socials flex flex-col justify-center items-center overflow-hidden w-full">
                   <div className="overflow-hidden w-full text-end lg:text-center hidden md:block">
                     <div className="mail py-3 pt-9 w-full text-lg md:text-xl lg:text-xl leading-none text-white font-normal md:text-center">

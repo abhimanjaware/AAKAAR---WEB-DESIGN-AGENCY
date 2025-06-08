@@ -283,13 +283,7 @@ function Loader() {
       <div className="loader-content h-full w-full bg-black overflow-hidden">
         <div className="loader-allStrips relative h-full flex justify-center">
           <div 
-            className="beam-circle absolute w-44 h-44 bg-black rounded-full z-50 flex items-center justify-center"
-            style={{
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              position: 'absolute'
-            }}
+            className="beam-circle absolute w-44 h-44 bg-black rounded-full z-50 flex items-center justify-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
           >
             <div 
               className="counter-number text-zinc-500 font-bold text-4xl md:text-5xl"
