@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useCallback } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -9,47 +9,54 @@ gsap.registerPlugin(ScrollTrigger);
 function Projects() {
   const pinWrapperRef = useRef(null);
   const projectsContainerRef = useRef(null);
-  const timelineRef = useRef(null);
   const showcaseRef = useRef(null);
 
-  const killScrollTriggers = useCallback(() => {
+  const triggerShowcaseAnimations = useCallback(() => {
+    const showcaseItems = showcaseRef.current?.querySelectorAll('[class*="-Showcase"]');
+    if (!showcaseItems) return;
+
+    showcaseItems.forEach((item, index) => {
+      const faceEl = item.querySelector('[class*="-Face"]');
+      const infoEl = item.querySelector('[class*="-Info"]');
+
+      if (faceEl && infoEl) {
+        gsap.to([faceEl, infoEl], {
+          y: 0,
+          opacity: 1,
+          duration: 1.2,
+          delay: index * 0.15,
+          ease: 'power3.out'
+        });
+      }
+    });
+  }, []);
+
+  useGSAP(() => {
+    // Kill existing ScrollTriggers for this component
     ScrollTrigger.getAll().forEach((st) => {
       if (st.vars?.id?.includes('projects-') || st.vars?.id?.includes('showcase-')) {
         st.kill();
       }
     });
-  }, []);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {}, projectsContainerRef);
-
-    return () => {
-      ctx.revert();
-      killScrollTriggers();
+    // Get elements
+    const elements = {
+      top: document.getElementById('opening-top'),
+      bottom: document.getElementById('opening-bottom'),
+      topHead: document.getElementById('opening-top-head'),
+      bottomHead: document.getElementById('opening-bottom-head'),
+      centerText: document.getElementById('opening-center-text')
     };
-  }, [killScrollTriggers]);
 
-  useGSAP(() => {
-    killScrollTriggers();
+    // Early return if required elements don't exist
+    if (!elements.top || !elements.bottom || !pinWrapperRef.current) return;
 
-    ScrollTrigger.config({
-      autoRefreshEvents: 'visibilitychange,DOMContentLoaded,load,resize',
-      syncInterval: 30,
+    // Set initial properties
+    gsap.set(Object.values(elements), {
+      willChange: 'transform, opacity'
     });
 
-    const topElement = document.getElementById('opening-top');
-    const bottomElement = document.getElementById('opening-bottom');
-    const topHeadElement = document.getElementById('opening-top-head');
-    const bottomHeadElement = document.getElementById('opening-bottom-head');
-    const centerTextElement = document.getElementById('opening-center-text');
-
-    if (!topElement || !bottomElement || !pinWrapperRef.current) return;
-
-    gsap.set([topElement, bottomElement, topHeadElement, bottomHeadElement, centerTextElement], {
-      willChange: 'transform, opacity',
-      force3D: true,
-    });
-
+    // Create main timeline
     const projectsTl = gsap.timeline({
       scrollTrigger: {
         trigger: pinWrapperRef.current,
@@ -64,86 +71,49 @@ function Projects() {
         invalidateOnRefresh: true,
         anticipatePin: 1,
         onUpdate: (self) => {
-          if (self.progress > 0.15 && showcaseRef.current) {
+          if (self.progress > 0.15) {
             triggerShowcaseAnimations();
           }
         },
         onComplete: () => {
-          gsap.set([topElement, bottomElement, topHeadElement, bottomHeadElement, centerTextElement], {
-            willChange: 'auto',
-          });
-        },
-      },
-    });
-
-    timelineRef.current = projectsTl;
-
-    projectsTl.to('#opening-top', {
-      y: '-100%',
-      duration: 0.2,
-      ease: 'power2.inOut',
-    }, 0);
-
-    projectsTl.to('#opening-bottom', {
-      y: '100%',
-      duration: 0.2,
-      ease: 'power2.inOut',
-    }, 0);
-
-    projectsTl.to('#opening-top-head', {
-      y: '-100%',
-      duration: 0.2,
-      ease: 'power2.inOut',
-    }, 0);
-
-    projectsTl.to('#opening-bottom-head', {
-      y: '100%',
-      duration: 0.2,
-      ease: 'power2.inOut',
-    }, 0);
-
-    projectsTl.to('#opening-center-text', {
-      opacity: 1,
-      top: '10rem',
-      duration: 0.25,
-      ease: 'power2.out',
-    }, 0.05);
-
-    projectsTl.to('#opening-center-text', {
-      opacity: 0,
-      duration: 0.1,
-      ease: 'power2.in',
-    }, 0.25);
-
-    projectsTl.set('#opening-bottom', { display: 'none' }, 0.3);
-
-    projectsTl.to('.showcase-container', {
-      y: '-85%',
-      duration: 0.8,
-      ease: 'power1.inOut',
-    }, 0.2);
-
-    const triggerShowcaseAnimations = () => {
-      const showcaseItems = showcaseRef.current?.querySelectorAll('[class*="-Showcase"]');
-      if (!showcaseItems) return;
-
-      showcaseItems.forEach((item, index) => {
-        const faceEl = item.querySelector('[class*="-Face"]');
-        const infoEl = item.querySelector('[class*="-Info"]');
-
-        if (faceEl && infoEl) {
-          gsap.to([faceEl, infoEl], {
-            y: 0,
-            opacity: 1,
-            duration: 1.2,
-            delay: index * 0.15,
-            ease: 'power3.out',
-            force3D: true,
+          gsap.set(Object.values(elements), {
+            willChange: 'auto'
           });
         }
-      });
-    };
+      }
+    });
 
+    // Opening animations
+    projectsTl
+      .to([elements.top, elements.topHead], {
+        y: '-100%',
+        duration: 0.2,
+        ease: 'power2.inOut'
+      }, 0)
+      .to([elements.bottom, elements.bottomHead], {
+        y: '100%',
+        duration: 0.2,
+        ease: 'power2.inOut'
+      }, 0)
+      .to(elements.centerText, {
+        opacity: 1,
+        top: '10rem',
+        duration: 0.25,
+        ease: 'power2.out'
+      }, 0.05)
+      .to(elements.centerText, {
+        opacity: 0,
+        duration: 0.1,
+        ease: 'power2.in'
+      }, 0.25)
+      .set(elements.bottom, { display: 'none' }, 0.3)
+      .to('.showcase-container', {
+        y: '-85%',
+        duration: 0.8,
+        ease: 'power1.inOut'
+      }, 0.2);
+
+    // Debounced refresh for performance
     let refreshTimeout;
     const debouncedRefresh = () => {
       clearTimeout(refreshTimeout);
@@ -152,28 +122,35 @@ function Projects() {
       }, 100);
     };
 
+    // Setup resize observer
     const resizeObserver = new ResizeObserver(debouncedRefresh);
-    if (pinWrapperRef.current) {
-      resizeObserver.observe(pinWrapperRef.current);
-    }
+    resizeObserver.observe(pinWrapperRef.current);
 
     window.addEventListener('resize', debouncedRefresh, { passive: true });
 
+    // Cleanup
     return () => {
       clearTimeout(refreshTimeout);
       resizeObserver.disconnect();
       window.removeEventListener('resize', debouncedRefresh);
-      if (timelineRef.current) timelineRef.current.kill();
-      killScrollTriggers();
+      projectsTl.kill();
+      ScrollTrigger.getAll().forEach((st) => {
+        if (st.vars?.id?.includes('projects-') || st.vars?.id?.includes('showcase-')) {
+          st.kill();
+        }
+      });
     };
-  }, { scope: projectsContainerRef, dependencies: [killScrollTriggers] });
+  }, { 
+    scope: projectsContainerRef, 
+    dependencies: [triggerShowcaseAnimations] 
+  });
 
   return (
     <div id='work' className='bg-[#1e110a] w-full overflow-hidden' ref={projectsContainerRef}>
-      <div className="project-content w-full block">
-        <div className="project-info bg-[#27170e] min-h-fit w-full block" />
-        <div ref={pinWrapperRef} className="pin-wrapper relative w-full block">
-          <div className="project-opening relative h-screen w-full bg-[#1e110a] block">
+      <div className="project-content w-full">
+        <div className="project-info bg-[#27170e] min-h-fit w-full" />
+        <div ref={pinWrapperRef} className="pin-wrapper relative w-full">
+          <div className="project-opening relative h-screen w-full bg-[#1e110a]">
 
             {/* Top Opening */}
             <div id="opening-top" className='h-1/2 absolute z-20 top-0 left-0 w-full bg-[#D9D9D9] overflow-hidden'>

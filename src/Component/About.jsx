@@ -1,433 +1,337 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import c1 from "../assets/images/ChatGPT Image Apr 27, 2025, 01_36_57 PM.png"
-import main from "../assets/images/abhimanmain.jpg"
-import alternate from "../assets/images/abhimanalternate.jpg"
-
+import c1 from "../assets/images/ChatGPT Image Apr 27, 2025, 01_36_57 PM.png";
+import main from "../assets/images/abhimanmain.jpg";
+import "../assets/images/abhimanalternate.jpg";
 
 gsap.registerPlugin(ScrollTrigger);
 
 function About() {
-  // Image data for each box with added landscape images for the empty boxes
-  const boxesData = [
+  // Refs for better performance
+  const componentRef = useRef(null);
+  const contextRefs = useRef([]);
+
+  // Memoized box data to prevent recreation on every render
+  const boxesData = useMemo(() => [
     {
       position: "w-[30%] h-[90vh] absolute top-[50%] translate-y-[-50%] left-0 sm:w-[40%] md:w-[35%] lg:w-[30%]",
-      bgColor: "",
       imgSrc: "https://i.pinimg.com/736x/32/04/a0/3204a0923c23d27a651420c8407e585d.jpg",
       isCenter: false,
-      objectFit: "cover",
-      objectPosition: "center"
     },
     {
-      position: "w-[30%] h-[90vh] absolute top-[50%] left-[50%] -translate-y-[50%] -translate-x-[50%] z-50 sm:w-[50%] md:w-[45%] lg:w-[35%] ",
-      bgColor: "",
+      position: "w-[30%] h-[90vh] absolute top-[50%] left-[50%] -translate-y-[50%] -translate-x-[50%] z-50 sm:w-[50%] md:w-[45%] lg:w-[35%]",
       imgSrc: c1,
       isCenter: true,
-      objectFit: "cover",
-      objectPosition: "center"
     },
     {
       position: "w-[30%] h-[90vh] absolute top-[50%] translate-y-[-50%] right-0 sm:w-[40%] md:w-[35%] lg:w-[30%]",
-      bgColor: "",
       imgSrc: "https://i.pinimg.com/736x/6e/74/34/6e74348f55ed5379f8df0e2e37a4f0d7.jpg",
       isCenter: false,
-      objectFit: "cover",
-      objectPosition: "center"
     },
-  ];
+  ], [c1]);
 
-  {/* JavaScript for touch detection on mobile and tablet */}
-useEffect(() => {
-  // Function to handle touch events on images
-  const handleTouchImageEffect = () => {
-    // Find all image containers
-    const mobileImageContainer = document.querySelector('.mobile-image');
-    const tabletImageContainer = document.querySelector('.tablet-image');
-    const centerImageContainer = document.querySelector('.center-image');
+  // Memoized content variations
+  const contentVariations = useMemo(() => [
+    {
+      mainTitle: "THE FOUNDER",
+      image: "https://i.pinimg.com/474x/42/43/36/42433638987f37168eb71dac6f9a998c.jpg",
+      paragraphs: [
+        "I'm Abhiman    Jaware, The founder of aakaar.digital.",
+        "a premium web design studio based in Nashik. With a refined eye for aesthetics and a passion for handcrafted code.We create websites that do more than look good — they perform. We design digital experiences that boost your online presence. Every brand has a story, and we bring it to life through clean code, timeless visuals, and thoughtful interaction.Aakaar.digital represents the fusion of art and technology.",
+        "Our studio specializes in crafting digital experiences that elevate brands to their highest potential.",
+        "We focus on clean aesthetics, intuitive interfaces, and optimized performance.",
+      ]
+    },
+  ], []);
+
+  const aboutParagraphs = useMemo(() => [
+    <span key="p1" className="font-black text-start bg-green-900  text-white">
+      I'm Abhiman Jaware, The founder of <span className="capitalize"><a href="">aakaar.digital.</a></span>
+    </span>,
+    "a premium web design studio based in Nashik. With a refined eye for aesthetics and a passion for handcrafted code.",
+    "We create websites that do more than look good — they perform. We design digital experiences that boost your online presence.",
+    "Every brand has a story, and we bring it to life through clean code, timeless visuals, and thoughtful interaction."
+  ], []);
+
+  // Optimized touch handler
+  const setupTouchInteractions = () => {
+    const containers = ['.mobile-image', '.tablet-image', '.center-image'];
     
-    const imageContainers = [mobileImageContainer, tabletImageContainer, centerImageContainer];
-    
-    imageContainers.forEach(container => {
-      if (container) {
-        // Get the images in the container
-        const images = container.querySelectorAll('img');
-        if (images.length >= 2) {
-          // Add touchstart event to toggle image opacity
-          container.addEventListener('touchstart', (e) => {
-            // Prevent default to avoid scroll/zoom
-            e.preventDefault();
-            // Toggle opacity of images
-            images[0].classList.toggle('opacity-0');
-            images[1].classList.toggle('opacity-0');
-          }, { passive: false });
-          
-          // Add touchend event to reset after touch
-          container.addEventListener('touchend', (e) => {
-            // Optional: If you want the effect to revert after touch
-            // Uncomment below if you want the original image to come back when touch ends
-            /*
-            images[0].classList.remove('opacity-0');
-            images[1].classList.add('opacity-0');
-            */
-          }, { passive: true });
-        }
-      }
+    containers.forEach(selector => {
+      const container = document.querySelector(selector);
+      if (!container) return;
+      
+      const images = container.querySelectorAll('img');
+      if (images.length < 2) return;
+      
+      const handleTouch = (e) => {
+        e.preventDefault();
+        images[0].classList.toggle('opacity-0');
+        images[1].classList.toggle('opacity-0');
+      };
+      
+      container.addEventListener('touchstart', handleTouch, { passive: false });
     });
   };
-  
-  // Call the function after component mounts
-  handleTouchImageEffect();
-  
-  // Clean up event listeners on unmount
-  return () => {
-    const mobileImageContainer = document.querySelector('.mobile-image');
-    const tabletImageContainer = document.querySelector('.tablet-image');
-    const centerImageContainer = document.querySelector('.center-image');
+
+  // Optimized text animation with will-change and transform3d
+  const setupTextAnimation = () => {
+    const selectors = ['#craft p', '#out p', '#webs p', '#leave p', '#impression p'];
+    const elements = selectors.map(sel => document.querySelector(sel)).filter(Boolean);
     
-    const imageContainers = [mobileImageContainer, tabletImageContainer, centerImageContainer];
-    
-    imageContainers.forEach(container => {
-      if (container) {
-        container.removeEventListener('touchstart', () => {});
-        container.removeEventListener('touchend', () => {});
-      }
-    });
-  };
-}, []);
+    if (elements.length === 0) return;
 
-
-  // Text animation for the intro section
-  useEffect(() => {
-    const context = gsap.context(() => {
-      // Select all text elements in the about-anime section
-      const craftText = document.querySelector("#craft p");
-      const outText = document.querySelector("#out p");
-      const websText = document.querySelector("#webs p");
-      const leaveText = document.querySelector("#leave p");
-      const impressionText = document.querySelector("#impression p");
-
-      // Set up horizontal scrolling animation
-      gsap.timeline({
-        scrollTrigger: {
-          trigger: "#about-anime",
-          start: "top bottom",
-          end: "bottom top",
-          scrub: 1.5,
-          markers: false,
-        }
-      })
-      .fromTo(craftText, 
-        { x: -30 }, 
-        { x: 50, duration: 1, ease: "power1.inOut" }, 0)
-      .fromTo(outText, 
-        { x: 80, y:-10 }, 
-        { x: 20, duration: 1, ease: "power1.inOut" }, 0)
-      .fromTo(websText, 
-        { x: 0, y:-25 }, 
-        { x: 100, duration: 1, ease: "power1.inOut" }, 0)
-      .fromTo(leaveText, 
-        { x: 30, y:-25 }, 
-        { x: -20, duration: 1, ease: "power1.inOut" }, 0)
-      .fromTo(impressionText, 
-        { x: 100, y:-25 }, 
-        { x: -100, duration: 1, ease: "power1.inOut" }, 0)
-
-      ScrollTrigger.refresh();
-    });
-
-    return () => context.revert();
-  }, []);
-
-  useEffect(() => {
-    const context = gsap.context(() => {
-      const centerBox = document.querySelector(".center-box");
-      const others = document.querySelectorAll(".leftup-img:not(.center-box)");
-      const textElements = document.querySelectorAll(".zoom-text");
-      const tagline = document.querySelectorAll("#tagline");
-      const agencySection = document.querySelector(".agency-section");
-
-      gsap.set(centerBox, { brightness: "100%" });
-
-      if (!centerBox) return;
-
-      const boxRect = centerBox.getBoundingClientRect();
-      const scaleX = window.innerWidth / boxRect.width;
-      const scaleY = window.innerHeight / boxRect.height;
-      const finalScale = Math.max(scaleX, scaleY);
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: ".about-wrapper",
-          start: "top top",
-          end: "+=300%",
-          scrub: 2.3,
-          pin: ".about-content",
-          anticipatePin: 1,
-          markers: false,
-        },
+    // Force hardware acceleration and optimize for transforms
+    elements.forEach(el => {
+      gsap.set(el, { 
+        force3D: true,
+        willChange: "transform",
+        backfaceVisibility: "hidden",
+        perspective: 1000
       });
-
-      tl.to(
-        centerBox,
-        {
-          scale: finalScale,
-          filter: "blur(12px)",
-          ease: "linear",
-          transformOrigin: "center center",
-          zIndex: 50,
-        },
-        0
-      )
-        .to(
-          others,
-          {
-            opacity: 0,
-            scale: 0.85,
-            ease: "linear",
-          },
-          0
-        )
-        .to(
-          textElements,
-          {
-            opacity: 1,
-            y: 0,
-            ease: "power2.out",
-            stagger: 3,
-            zIndex: 100,
-          },
-          0.2
-        )
-        .to(
-          tagline,
-          {
-            opacity: 1,
-            y: 0,
-            ease: "power2.out",
-            zIndex: 100,
-          },
-          0.35
-        )
-        .to(
-          agencySection,
-          {
-            opacity: 1,
-            y: 0,
-            ease: "power2.out",
-            duration: 1,
-          },
-          0.8
-        );
-
-      ScrollTrigger.refresh();
     });
 
-    return () => context.revert();
-  }, []);
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: "#about-anime",
+        start: "top bottom",
+        end: "bottom top",
+        scrub: true, // Use boolean for smoother performance
+        refreshPriority: -1,
+        invalidateOnRefresh: true,
+      }
+    });
 
-  // Fixed Founder section animations with bi-directional scrolling support
-useEffect(() => {
-  const founderContext = gsap.context(() => {
-    const centerContainer = document.querySelector(".center-animation-container");
-    const meetThePart = document.querySelector(".meet-the-part");
-    const meetTheLetters = document.querySelectorAll(".meet-the-letter");
-    const founderLetters = document.querySelectorAll(".founder-letter");
-    const detailsContainer = document.querySelector(".abhiman-dets");
-    const paragraphs = document.querySelectorAll(".about-paragraph");
-    const finalContainer = document.querySelector(".founder-container");
-    const mobileContainer = document.querySelector(".mobile-founder-container");
-    const mobileParagraphs = document.querySelectorAll(".mobile-paragraph");
-    const mobileTitle = document.querySelector(".mobile-title");
-    const mobileImage = document.querySelector(".mobile-image");
-    const mobileTextContent = document.querySelector(".mobile-text-content");
-    const abhimanImg = document.querySelector(".abhiman-image");
-    const abhimanMail = document.querySelector(".abhiman-mail");
-    const abhimanConnect = document.querySelector(".abhiman-connect");
-    const abhimanJoin = document.querySelector(".abhiman-join");
-    const mobileMail = document.querySelector(".abhiman-mail-mobile");
-    const mobileConnect = document.querySelector(".abhiman-connect-mobile");
+    // Optimized animations with transform3d
+    const animations = [
+      { element: elements[0], from: { x: -30, z: 0 }, to: { x: 50, z: 0 } },
+      { element: elements[1], from: { x: 80, y: -10, z: 0 }, to: { x: 20, y: -10, z: 0 } },
+      { element: elements[2], from: { x: 0, y: -25, z: 0 }, to: { x: 100, y: -25, z: 0 } },
+      { element: elements[3], from: { x: 30, y: -25, z: 0 }, to: { x: -20, y: -25, z: 0 } },
+      { element: elements[4], from: { x: 100, y: -25, z: 0 }, to: { x: -100, y: -25, z: 0 } },
+    ];
 
-    // Check if we're on mobile or desktop
+    animations.forEach(({ element, from, to }) => {
+      if (element) {
+        tl.fromTo(element, from, { 
+          ...to, 
+          ease: "none", // Use 'none' for smoother scrub animations
+          force3D: true
+        }, 0);
+      }
+    });
+
+    return tl;
+  };
+
+  // Optimized zoom animation
+  const setupZoomAnimation = () => {
+    const centerBox = document.querySelector(".center-box");
+    const others = document.querySelectorAll(".leftup-img:not(.center-box)");
+    const textElements = document.querySelectorAll(".zoom-text");
+    const tagline = document.querySelectorAll("#tagline");
+    const agencySection = document.querySelector(".agency-section");
+
+    if (!centerBox) return;
+
+    gsap.set(centerBox, { brightness: "100%" });
+
+    const { width: boxWidth, height: boxHeight } = centerBox.getBoundingClientRect();
+    const scaleX = window.innerWidth / boxWidth;
+    const scaleY = window.innerHeight / boxHeight;
+    const finalScale = Math.max(scaleX, scaleY);
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: ".about-wrapper",
+        start: "top top",
+        end: "+=300%",
+        scrub: 2.3,
+        pin: ".about-content",
+        anticipatePin: 1,
+        refreshPriority: 1,
+      },
+    });
+
+    tl.to(centerBox, {
+      scale: finalScale,
+      filter: "blur(12px)",
+      ease: "linear",
+      transformOrigin: "center center",
+      zIndex: 50,
+    }, 0)
+    .to(others, {
+      opacity: 0,
+      scale: 0.85,
+      ease: "linear",
+    }, 0)
+    .to(textElements, {
+      opacity: 1,
+      y: 0,
+      ease: "power2.out",
+      stagger: 3,
+      zIndex: 100,
+    }, 0.2)
+    .to(tagline, {
+      opacity: 1,
+      y: 0,
+      ease: "power2.out",
+      zIndex: 100,
+    }, 0.35);
+
+    if (agencySection) {
+      tl.to(agencySection, {
+        opacity: 1,
+        y: 0,
+        ease: "power2.out",
+        duration: 1,
+      }, 0.8);
+    }
+
+    return tl;
+  };
+
+  // Optimized founder animation with mobile improvements
+  const setupFounderAnimation = () => {
+    const selectors = {
+      centerContainer: ".center-animation-container",
+      meetThePart: ".meet-the-part",
+      meetTheLetters: ".meet-the-letter",
+      founderLetters: ".founder-letter",
+      detailsContainer: ".abhiman-dets",
+      paragraphs: ".about-paragraph",
+      finalContainer: ".founder-container",
+      mobileContainer: ".mobile-founder-container",
+      mobileParagraphs: ".mobile-paragraph",
+      mobileTitle: ".mobile-title",
+      mobileImage: ".mobile-image",
+      mobileTextContent: ".mobile-text-content",
+      abhimanImg: ".abhiman-image",
+      abhimanMail: ".abhiman-mail",
+      abhimanConnect: ".abhiman-connect",
+      abhimanJoin: ".abhiman-join",
+      mobileMail: ".abhiman-mail-mobile",
+      mobileConnect: ".abhiman-connect-mobile"
+    };
+
+    const elements = {};
+    Object.entries(selectors).forEach(([key, selector]) => {
+      elements[key] = key.includes('Letters') || key.includes('Paragraphs') 
+        ? document.querySelectorAll(selector)
+        : document.querySelector(selector);
+    });
+
     const isMobile = window.innerWidth < 768;
 
-    // Set initial states
-    gsap.set(abhimanJoin, { position: "relative", zIndex: 10 });
-    gsap.set(finalContainer, { opacity: 0 });
-    
-    // Set initial states for all elements
-    if (mobileContainer) {
-      gsap.set(mobileContainer, { opacity: 0 });
-      gsap.set(mobileTitle, { opacity: 0, y: -20 });
-      gsap.set(mobileImage, { opacity: 0, y: 30 });
-      gsap.set(mobileTextContent, { opacity: 0, y: 30 });
-      gsap.set(mobileParagraphs, { opacity: 0, y: 20 });
-      gsap.set(mobileMail, { opacity: 0, y: 20 });
-      gsap.set(mobileConnect, { opacity: 0, y: 20 });
-    }
-    
-    gsap.set(detailsContainer, { opacity: 0, y: 30 });
-    gsap.set(paragraphs, { opacity: 0, y: 20 });
-    gsap.set(meetThePart, { y: -10 });
-    gsap.set(meetTheLetters, { rotationY: 95, opacity: 0, y: 100 });
-    gsap.set(founderLetters, { rotationY: 95, opacity: 0, y: 150 });
-    gsap.set(abhimanImg, { opacity: 0 });
-    gsap.set(abhimanMail, { opacity: 0, y: 20 });
-    gsap.set(abhimanConnect, { opacity: 0, y: 20 });
+    // Set initial states with batch operations
+    const initialStates = [
+      [elements.abhimanJoin, { position: "relative", zIndex: 10 }],
+      [elements.finalContainer, { opacity: 0 }],
+      [elements.detailsContainer, { opacity: 0, y: 30 }],
+      [elements.paragraphs, { opacity: 0, y: 20 }],
+      [elements.meetThePart, { y: -10 }],
+      [elements.meetTheLetters, { rotationY: 95, opacity: 0, y: 100 }],
+      [elements.founderLetters, { rotationY: 95, opacity: 0, y: 150 }],
+      [elements.abhimanImg, { opacity: 0 }],
+      [elements.abhimanMail, { opacity: 0, y: 20 }],
+      [elements.abhimanConnect, { opacity: 0, y: 20 }],
+    ];
 
-    // Calculate different move positions for desktop
+    if (elements.mobileContainer) {
+      initialStates.push(
+        [elements.mobileContainer, { opacity: 0 }],
+        [elements.mobileTitle, { opacity: 0, y: -20 }],
+        [elements.mobileImage, { opacity: 0, y: 30 }],
+        [elements.mobileTextContent, { opacity: 0, y: 30 }],
+        [elements.mobileParagraphs, { opacity: 0, y: 20 }],
+        [elements.mobileMail, { opacity: 0, y: 20 }],
+        [elements.mobileConnect, { opacity: 0, y: 20 }]
+      );
+    }
+
+    initialStates.forEach(([element, props]) => {
+      if (element) gsap.set(element, props);
+    });
+
+    // Calculate move position for desktop
     let moveX = 0;
-    
-    if (!isMobile && finalContainer) {
-      const finalRect = finalContainer.getBoundingClientRect();
-      const windowCenter = {
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2
-      };
+    if (!isMobile && elements.finalContainer) {
+      const finalRect = elements.finalContainer.getBoundingClientRect();
+      const windowCenter = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
       moveX = finalRect.left - windowCenter.x;
     }
 
-    // Create a ScrollTrigger that works in both directions
+    // Create optimized timeline
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: ".founder-section",
         start: "top 60%",
         end: "bottom bottom",
-        markers: false,
-        toggleActions: "play none none reverse" // Important: Makes animations reverse when scrolling back up
+        toggleActions: "play none none reverse",
+        refreshPriority: 0,
       }
     });
 
-    // Initial animation sequence for both mobile and desktop
-    tl
-      .to(meetTheLetters, {
-        opacity: 1,
-        rotationY: 0,
-        x: isMobile ? 0 : -40,
-        duration: 0.4,
-        stagger: 0.04,
-        ease: "power1.out",
-        y: 15,
-        // delay:-.35
+    // Common animations
+    tl.to(elements.meetTheLetters, {
+      opacity: 1,
+      rotationY: 0,
+      x: isMobile ? 0 : -40,
+      duration: 0.4,
+      stagger: 0.04,
+      ease: "power1.out",
+      y: 15,
+    })
+    .to(elements.founderLetters, {
+      opacity: 1,
+      rotationY: 0,
+      x: isMobile ? 0 : 26,
+      duration: 0.5,
+      stagger: 0.07,
+      ease: "back.out(1.2)",
+      y: -15,
+      delay: -0.40
+    }, "-=0.1")
+    .to(elements.abhimanImg, {
+      opacity: 1,
+      duration: 0.4,
+      y: -12,
+      x: isMobile ? 0 : -10,
+      ease: "power2.inOut",
+      delay: -0.45
+    }, "-=0.3");
 
-      })
-      .to(founderLetters, {
-        opacity: 1,
-        rotationY: 0,
-        x: isMobile ? 0 : 26,
-        duration: 0.5,
-        stagger: 0.07,
-        ease: "back.out(1.2)",
-        y: -15,
-        delay:-.40
-
-      }, "-=0.1")
-      .to(abhimanImg, {
-        opacity: 1,
-        duration: 0.4,
-        y: -12,
-        x: isMobile ? 0 : -10,
-        ease: "power2.inOut",
-        delay:-.45
-
-      }, "-=0.3");
-      
+    // Branch animations based on device
     if (isMobile) {
-      // MOBILE WORKFLOW - New cleaner vertical flow
-      // 1. Fade out the center animation
-      tl.to(centerContainer, {
-        opacity: 0,
-        duration: 0.5,
-        ease: "power3.inOut",
-        delay:-.50
+      // Mobile-optimized timeline with reduced delays for smoother performance
+      const mobileAnimations = [
+        [elements.centerContainer, { opacity: 0, duration: 0.3 }],
+        [elements.mobileContainer, { opacity: 1, duration: 0.3 }],
+        [elements.mobileTitle, { opacity: 1, y: 0, duration: 0.3 }],
+        [elements.mobileImage, { opacity: 1, y: 0, duration: 0.3 }],
+        [elements.mobileTextContent, { opacity: 1, y: 0, duration: 0.3 }],
+        [elements.mobileParagraphs, { opacity: 1, y: 0, stagger: 0.08, duration: 0.25 }],
+        [elements.mobileMail, { opacity: 1, y: 0, duration: 0.25 }],
+        [elements.mobileConnect, { opacity: 1, y: 0, duration: 0.25 }]
+      ];
+
+      mobileAnimations.forEach(([element, props], index) => {
+        if (element) {
+          const offset = index < 2 ? "-=0.15" : "-=0.1";
+          tl.to(element, { ...props, ease: "power2.out" }, offset);
+        }
       });
-      
-      // 2. Show the mobile container with staggered elements
-      tl.to(mobileContainer, {
-        opacity: 1,
-        duration: 0.4,
-        ease: "power2.inOut",
-        delay:-.55
-
-      }, "-=0.2")
-      
-      // 3. Animate the mobile title
-      .to(mobileTitle, {
-        opacity: 1,
-        y: 0,
-        duration: 0.4,
-        ease: "power2.out",
-        delay:-.60
-
-      }, "-=0.2")
-      
-      // 4. Animate the mobile image
-      .to(mobileImage, {
-        opacity: 1,
-        y: 0,
-        duration: 0.4,
-        ease: "power2.out",
-        delay:-.65
-
-      }, "-=0.2")
-      
-      // 5. Show the text content container
-      .to(mobileTextContent, {
-        opacity: 1,
-        y: 0,
-        duration: 0.4,
-        ease: "power2.out",
-        delay:-.70
-
-      }, "-=0.2")
-      
-      // 6. Stagger the paragraphs
-      .to(mobileParagraphs, {
-        opacity: 1,
-        y: 0,
-        stagger: 0.1,
-        duration: 0.3,
-        ease: "power2.out",
-        delay:-.75
-
-      }, "-=0.2")
-      
-      // 7. Show the contact elements
-      .to(mobileMail, {
-        opacity: 1,
-        y: 0,
-        duration: 0.3,
-        ease: "power2.out",
-        delay:-.80
-
-      }, "-=0.1")
-      
-      .to(mobileConnect, {
-        opacity: 1,
-        y: 0,
-        duration: 0.3,
-        ease: "power2.out",
-        delay:-.85
-
-      }, "-=0.2");
     } else {
-      // DESKTOP WORKFLOW - Keep as original
-      tl.to(centerContainer, {
+      // Desktop animations
+      tl.to(elements.centerContainer, {
         x: moveX,
         duration: 1,
         ease: "power3.inOut",
-        // delay:5
       })
-      .to(finalContainer, {
-        opacity: 1,
-        duration: 0.4
-      }, "-=0.6")
-      .to(detailsContainer, {
-        opacity: 1,
-        y: 0,
-        duration: 0.8
-      }, "-=0.4")
-      .to(paragraphs, {
+      .to(elements.finalContainer, { opacity: 1, duration: 0.4 }, "-=0.6")
+      .to(elements.detailsContainer, { opacity: 1, y: 0, duration: 0.8 }, "-=0.4")
+      .to(elements.paragraphs, {
         opacity: 1,
         y: 0,
         x: 10,
@@ -435,204 +339,170 @@ useEffect(() => {
         duration: 0.5,
         ease: "power2.out"
       }, "-=0.6")
-      .to(abhimanMail, {
-        opacity: 1,
-        x: 10,
-        y: 0,
-        duration: 0.3
-      }, "-=0.4")
-      .to(abhimanConnect, {
-        opacity: 1,
-        y: 0,
-        x: 5,
-        duration: 0.3
-      }, "-=0.3");
+      .to(elements.abhimanMail, { opacity: 1, x: 10, y: 0, duration: 0.3 }, "-=0.4")
+      .to(elements.abhimanConnect, { opacity: 1, y: 0, x: 5, duration: 0.3 }, "-=0.3");
     }
 
-    // Handle window resize
-    const handleResize = () => {
-      // Refresh ScrollTrigger to update positions
-      ScrollTrigger.refresh();
-      
-      // Check if we need to update animation based on new window size
-      const newIsMobile = window.innerWidth < 768;
-      if (newIsMobile !== isMobile) {
-        // If view mode changed, kill and restart animations
-        tl.kill();
-        ScrollTrigger.getAll().forEach(st => st.kill());
-        
-        // Reload the page to reset everything
-        window.location.reload();
+    return tl;
+  };
+
+  // Optimized content switching
+  const setupContentSwitching = () => {
+    if (contentVariations.length <= 1) return;
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: ".abhiman",
+        start: "top top",
+        endTrigger: ".emptyscreen:last-child",
+        end: "top 50%",
+        pin: true,
+        pinSpacing: true,
+        scrub: 1,
+        refreshPriority: -1,
       }
-    };
-
-    // Add resize listener
-    window.addEventListener("resize", handleResize);
-
-    // Clean up on unmount
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      tl.kill();
-      ScrollTrigger.getAll().forEach(st => st.kill());
-    };
-
-    ScrollTrigger.refresh();
-  });
-
-  return () => founderContext.revert();
-}, []);
-
-  // Content switching animations - Fixed to preserve paragraph visibility
-  useEffect(() => {
-    const switchingContext = gsap.context(() => {
-      const contentVariations = [
-        {
-          mainTitle: "THE FOUNDER",
-          image: "https://i.pinimg.com/474x/42/43/36/42433638987f37168eb71dac6f9a998c.jpg",
-          objectFit: "cover",
-          objectPosition: "center",
-          paragraphs: [
-            "I'mAbhiman    Jaware, The founder of aakaar.digital.",
-            "a premium web design studio based in Nashik. With a refined eye for aesthetics and a passion for handcrafted code.We create websites that do more than look good — they perform. We design digital experiences that boost your online presence. Every brand has a story, and we bring it to life through clean code, timeless visuals, and thoughtful interaction.Aakaar.digital represents the fusion of art and technology.",
-               "Our studio specializes in crafting digital experiences that elevate brands to their highest potential.",
-                "We focus on clean aesthetics, intuitive interfaces, and optimized performance.",
-           
-          ]
-        },
-      
-      ];
-
-      const pinSwitchTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: ".abhiman",
-          start: "top top",
-          endTrigger: ".emptyscreen:last-child",
-          end: "top 50%",
-          pin: true,
-          pinSpacing: true,
-          scrub: 1,
-          markers: false,
-        }
-      });
-
-      contentVariations.forEach((content, index) => {
-        if (index === 0) return;
-
-        const sectionDuration = 1 / (contentVariations.length - 1);
-        const startPoint = index - 1;
-
-        pinSwitchTl
-          .to(".abhiman-title h2 span:last-child", {
-            opacity: 0,
-            y: -30,
-            duration: 0.15,
-          }, startPoint * sectionDuration)
-          .to(".founder-image img", {
-            opacity: 0,
-            scale: 0.9,
-            y:500,
-            duration: 0.15,
-          }, startPoint * sectionDuration)
-          .to(".about-paragraph", {
-            opacity: 0.5, // Changed from 0 to 0.5 to maintain some visibility
-            y: -10, // Reduced from -20 to -10 for subtler movement
-            stagger: 0.03,
-            duration: 0.15,
-          }, startPoint * sectionDuration)
-          .call(() => {
-            const titleElement = document.querySelector(".abhiman-title h2 span:last-child");
-            if (titleElement) titleElement.textContent = content.mainTitle;
-
-            const imageElement = document.querySelector(".founder-image img");
-            if (imageElement) {
-              imageElement.src = content.image;
-              imageElement.style.objectFit = content.objectFit;
-              imageElement.style.objectPosition = content.objectPosition;
-            }
-
-            const paragraphElements = document.querySelectorAll(".about-paragraph");
-            content.paragraphs.forEach((text, i) => {
-              if (paragraphElements[i]) {
-                if (i === 0) {
-                  // Make sure to preserve the font-black class for the first paragraph
-                  paragraphElements[i].innerHTML = `<span class="font-black text-white">${text}</span>`;
-                } else {
-                  paragraphElements[i].textContent = text;
-                }
-              }
-            });
-          }, null, startPoint * sectionDuration + 0.15)
-          .to(".abhiman-title h2 span:last-child", {
-            opacity: 1,
-            y: 0,
-            duration: 0.15,
-          }, startPoint * sectionDuration + 0.2)
-          .to(".founder-image img", {
-            opacity: 1,
-            scale: 1,
-            duration: 0.15,
-          }, startPoint * sectionDuration + 0.2)
-          .to(".about-paragraph", {
-            opacity: 1,
-            y: 0,
-            stagger: 0.05,
-            duration: 0.15,
-          }, startPoint * sectionDuration + 0.25);
-      });
-
-      ScrollTrigger.refresh();
     });
 
-    return () => switchingContext.revert();
-  }, []);
+    contentVariations.forEach((content, index) => {
+      if (index === 0) return;
 
-  const aboutParagraphs = [
-    <span key="p1" className="font-black text-white">I'm Abhiman Jaware, The founder of <span className="capitalize"><a href="">aakaar.digital.</a></span></span>,
-    "a premium web design studio based in Nashik. With a refined eye for aesthetics and a passion for handcrafted code.",
-    "We create websites that do more than look good — they perform. We design digital experiences that boost your online presence.",
-    "Every brand has a story, and we bring it to life through clean code, timeless visuals, and thoughtful interaction."
-  ];
+      const sectionDuration = 1 / (contentVariations.length - 1);
+      const startPoint = index - 1;
+
+      // Batch DOM queries
+      const elements = {
+        title: document.querySelector(".abhiman-title h2 span:last-child"),
+        image: document.querySelector(".founder-image img"),
+        paragraphs: document.querySelectorAll(".about-paragraph")
+      };
+
+      tl.to(elements.title, { opacity: 0, y: -30, duration: 0.15 }, startPoint * sectionDuration)
+        .to(elements.image, { opacity: 0, scale: 0.9, y: 500, duration: 0.15 }, startPoint * sectionDuration)
+        .to(elements.paragraphs, { opacity: 0.5, y: -10, stagger: 0.03, duration: 0.15 }, startPoint * sectionDuration)
+        .call(() => {
+          // Batch DOM updates
+          if (elements.title) elements.title.textContent = content.mainTitle;
+          if (elements.image) {
+            elements.image.src = content.image;
+            elements.image.style.objectFit = "cover";
+            elements.image.style.objectPosition = "center";
+          }
+          
+          content.paragraphs.forEach((text, i) => {
+            if (elements.paragraphs[i]) {
+              if (i === 0) {
+                elements.paragraphs[i].innerHTML = `<span class="font-black text-white">${text}</span>`;
+              } else {
+                elements.paragraphs[i].textContent = text;
+              }
+            }
+          });
+        }, null, startPoint * sectionDuration + 0.15)
+        .to(elements.title, { opacity: 1, y: 0, duration: 0.15 }, startPoint * sectionDuration + 0.2)
+        .to(elements.image, { opacity: 1, scale: 1, duration: 0.15 }, startPoint * sectionDuration + 0.2)
+        .to(elements.paragraphs, { opacity: 1, y: 0, stagger: 0.05, duration: 0.15 }, startPoint * sectionDuration + 0.25);
+    });
+
+    return tl;
+  };
+
+  // Optimized resize handler with debouncing
+  const setupResizeHandler = () => {
+    let resizeTimeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        ScrollTrigger.refresh();
+        
+        // Only reload if switching between mobile/desktop
+        if ((window.innerWidth < 768) !== (window.innerHeight > window.innerWidth)) {
+          window.location.reload();
+        }
+      }, 100);
+    };
+
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(resizeTimeout);
+    };
+  };
+
+  // Main useEffect with optimized cleanup
+  useEffect(() => {
+    // Clear previous contexts
+    contextRefs.current.forEach(context => context?.revert?.());
+    contextRefs.current = [];
+
+    const context = gsap.context(() => {
+      // Setup all animations
+      setupTouchInteractions();
+      const textTl = setupTextAnimation();
+      const zoomTl = setupZoomAnimation();
+      const founderTl = setupFounderAnimation();
+      const contentTl = setupContentSwitching();
+      
+      // Store timelines for cleanup
+      contextRefs.current.push(textTl, zoomTl, founderTl, contentTl);
+      
+      // Batch ScrollTrigger refresh
+      ScrollTrigger.batch(".about *", {
+        onEnter: () => ScrollTrigger.refresh(),
+        once: true
+      });
+      
+    }, componentRef.current);
+
+    const cleanupResize = setupResizeHandler();
+
+    
+
+    return () => {
+      context.revert();
+      cleanupResize();
+      contextRefs.current.forEach(tl => tl?.kill?.());
+      ScrollTrigger.getAll().forEach(st => st.kill());
+    };
+  }, [contentVariations]);
 
   return (
-    <>
-    <div  className="about bg-[#1e110a] overflow-x-hidden">
+    <div ref={componentRef} className="about bg-[#1e110a] overflow-x-hidden">
       {/* Entry Screen */}
-      <div className="about-moving bg-[#1e110a] h-fit md:h-[100vh]  text-center">
-        <div className='aakar-head w-full h-fit pt-16 flex flex-col items-center justify-center text-center leading-normal'>
-        </div>
-        <div className="bg-[#1e110a] h-fit md:h-screen  w-full flex flex-col justify-center py-[4rem]  leading-tight text-[#D9D9D9]  lg:px-[15rem] md:pb-[7rem]" id="about-anime">
-          <div className=" w-full flex justify-start" id="craft">
-            <p className="whitespace-nowrap text-[13vw] pl-2 lg:text-[7vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none  "  >CRAFTING</p>
+      <div className="about-moving bg-[#1e110a] h-fit md:h-[100vh] text-center">
+        <div className='aakar-head w-full h-fit pt-16 flex flex-col items-center justify-center text-center leading-normal' />
+        
+        <div className="bg-[#1e110a] h-fit md:h-screen w-full flex flex-col justify-center py-[4rem] leading-tight text-[#D9D9D9] lg:px-[15rem] md:pb-[7rem]" id="about-anime">
+          <div className="w-full flex justify-start" id="craft">
+            <p className="whitespace-nowrap text-[13vw] pl-2 lg:text-[7vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none transform-gpu will-change-transform">CRAFTING</p>
           </div>
-          <div className=" w-full" id="out">
-            <p className="whitespace-nowrap text-[21vw] lg:text-[11.5vw] tracking-normal  font-[Tangerine] leading-none text-start pl-[3rem] lg:pl-[17rem] mt-[-50px]">Outstanding</p>
+          <div className="w-full" id="out">
+            <p className="whitespace-nowrap text-[21vw] lg:text-[11.5vw] tracking-normal font-[Tangerine] leading-none text-start pl-[3rem] lg:pl-[17rem] mt-[-50px] transform-gpu will-change-transform">Outstanding</p>
           </div>
-          <div className="" id="webs">
-            <p className="whitespace-nowrap text-[12.5vw] lg:text-[6vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-end pr-[18rem]">WEBSITES</p>
+          <div id="webs">
+            <p className="whitespace-nowrap text-[12.5vw] lg:text-[6vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-end pr-[18rem] transform-gpu will-change-transform">WEBSITES</p>
           </div>
-          <div className="" id="leave">
-            <p className="whitespace-nowrap text-[12vw] lg:text-[7vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-center ">THAT LEAVES A</p>
+          <div id="leave">
+            <p className="whitespace-nowrap text-[12vw] lg:text-[7vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-center transform-gpu will-change-transform">THAT LEAVES A</p>
           </div>
-          <div className="" id="impression">
-            <p className="whitespace-nowrap text-[17vw] pl-16 lg:text-[10.5vw] tracking-normal font-[Tangerine] leading-none text-center lg:text-end lg:pr-[-5rem]">Lasting Impression.</p>
+          <div id="impression">
+            <p className="whitespace-nowrap text-[17vw] pl-16 lg:text-[10.5vw] tracking-normal font-[Tangerine] leading-none text-center lg:text-end lg:pr-[-5rem] transform-gpu will-change-transform">Lasting Impression.</p>
           </div>
         </div>
       </div>
 
       {/* Scroll Section */}
-      <div className="about-wrapper overflow-hidden min-h-[400vh]  relative hidden lg:block">
+      <div className="about-wrapper overflow-hidden min-h-[400vh] relative hidden lg:block">
         <div className="about-content h-screen w-full relative z-10">
-          {/* Map through boxes data */}
           {boxesData.map((box, index) => (
             <div
               key={index}
-              className={`leftup-img ${box.bgColor} ${box.position}  ${box.isCenter ? 'center-box' : ''} overflow-hidden flex items-center justify-center`}
+              className={`leftup-img ${box.position} ${box.isCenter ? 'center-box' : ''} overflow-hidden flex items-center justify-center`}
             >
               <img
-                className="w-full h-full"
-                style={{ objectFit: box.objectFit, objectPosition: box.objectPosition }}
+                className="w-full h-full object-cover"
                 src={box.imgSrc}
                 alt={`Box image ${index}`}
+                loading={index === 0 ? "eager" : "lazy"}
               />
             </div>
           ))}
@@ -651,7 +521,7 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* About founder section with center animation - improved spacing and separate animations */}
+           {/* About founder section with center animation - improved spacing and separate animations */}
 <div id="about" className="abhiman min-h-screen w-full bg-[#100905] flex justify-center items-center overflow-hidden mt-0 md:mt-[-10rem]">
   <div className="founder-section  w-full h-auto min-h-screen flex justify-center items-center pt-12 md:pt-18 lg:pt-42 relative">
   
@@ -925,12 +795,7 @@ useEffect(() => {
 </div>
 </div>
 
-
-
-      {/* Exit Screen */}
-      {/* <div className="emptyscreen h-screen"></div> */}
     </div>
-    </>
   );
 }
 

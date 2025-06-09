@@ -88,11 +88,12 @@ const ScrollToTopButton = () => {
   };
 
   return (
-    <button
+   <div className='hidden lg:block'>
+     <button
       ref={buttonRef}
       onClick={scrollToTop}
       aria-label="Scroll to top"
-      className="fixed bottom-3 right-2 lg:bottom-5 md:right-4 md:bottom-4 lg:right-5 mix-blend-difference z-50  lg:p-6 w-12 h-12 flex flex-col items-center justify-center rounded-full backdrop-blur-3xl border border-[#D9D9D9]/30 bg-black/5 hover:bg-black focus:outline-none focus:ring-2 focus:white"
+      className="fixed bottom-3 right-2 lg:bottom-5 md:right-4 md:bottom-4 lg:right-5 mix-blend-difference z-50   lg:p-6 w-12 h-12 flex flex-col items-center justify-center rounded-full backdrop-blur-3xl border border-[#D9D9D9]/30 bg-black/5 hover:bg-black focus:outline-none focus:ring-2 focus:white"
       style={{ opacity: 0, visibility: 'hidden', transform: 'translateY(40px)' }}
     >
       <div ref={arrowsRef} className="flex flex-col items-center justify-center">
@@ -101,6 +102,7 @@ const ScrollToTopButton = () => {
         <span className="text-white text-md lg:text-xl font-normal leading-none transform scale-x-200 -mt-3" style={{marginTop:'-10.5px'}}>^</span>
       </div>
     </button>
+   </div>
   );
 };
 

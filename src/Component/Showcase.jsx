@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import sparrow from "../assets/video/sparrowteck_showcase.mp4";
@@ -15,17 +15,14 @@ function Showcase() {
   const showcaseRef = useRef(null);
   const projectRefs = useRef([]);
   const animationContextRef = useRef(null);
-
   const [gridSettings, setGridSettings] = useState({ gap: 170, count: 28, cellSize: 170 });
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const projects = [
+  const projects = useMemo(() => [
     {
       id: "SparrowTeck",
       video: sparrow,
       title: "SPARROWTECK PERFROMANCE",
-      description:
-        "Sparrowteck Performance is a high-performance eCommerce brand for custom bike sprockets. We built a seamless shopping experience with smooth animations and an engineering-first aesthetic—capturing the speed, strength, and spirit of the ride.",
+      description: "Sparrowteck Performance is a high-performance eCommerce brand for custom bike sprockets. We built a seamless shopping experience with smooth animations and an engineering-first aesthetic—capturing the speed, strength, and spirit of the ride.",
       hashtags: "#ecommerce  #content curation #art direction #copywriting #web design ",
       reverse: false,
       url: "https://sparrow-teck-perfromance-p5p3lxfeb-abhiman-jawares-projects.vercel.app/",
@@ -34,8 +31,7 @@ function Showcase() {
       id: "Radian",
       video: rad,
       title: "RADIAN MEDIA",
-      description:
-        "Radian Media helps agencies book high-quality appointments, charge more, and build a business that serves them. We created a high-converting site with smooth interactions and a bold, confident brand language.",
+      description: "Radian Media helps agencies book high-quality appointments, charge more, and build a business that serves them. We created a high-converting site with smooth interactions and a bold, confident brand language.",
       hashtags: "#modern webdesign  #ui/ux design  #art direction #responsive design #web design ",
       reverse: true,
       url: "https://radianmedia.org/",
@@ -44,8 +40,7 @@ function Showcase() {
       id: "Ochi",
       video: oochi,
       title: "OCHI PRESENTATION",
-      description:
-        "Ochi is a strategic presentation agency for bold, future-focused companies. We crafted a sharp, minimal website with impactful typography, confident colors, and fluid GSAP animations to guide focus and elevate storytelling.",
+      description: "Ochi is a strategic presentation agency for bold, future-focused companies. We crafted a sharp, minimal website with impactful typography, confident colors, and fluid GSAP animations to guide focus and elevate storytelling.",
       hashtags: "#DigitalExperienceDesign #ModernUIUX #StrategicBranding",
       reverse: false,
       hashtagsClass: "lowercase",
@@ -55,8 +50,7 @@ function Showcase() {
       id: "Rejouice",
       video: rejouice,
       title: "REJOUICE AGENCY ",
-      description:
-        "A thoughtfully designed and animated website that reflects our passion for clean visuals, smooth interactions, and intuitive experiences.From layout to motion, every element is carefully crafted to feel effortless yet engaging. Built with React and GSAP.",
+      description: "A thoughtfully designed and animated website that reflects our passion for clean visuals, smooth interactions, and intuitive experiences.From layout to motion, every element is carefully crafted to feel effortless yet engaging. Built with React and GSAP.",
       hashtags: "#copywriting #Inclusive Design #StrategicBranding",
       reverse: true,
       hashtagsClass: "lowercase",
@@ -66,8 +60,7 @@ function Showcase() {
       id: "Works",
       video: works,
       title: "WORKS STUDIO",
-      description:
-        "Works.Studio is a creative studio advancing culture through strategy and design. We built a high-impact, visually bold website with striking typography, fluid animations, and seamless UX—capturing the agency's artistic and strategic essence.",
+      description: "Works.Studio is a creative studio advancing culture through strategy and design. We built a high-impact, visually bold website with striking typography, fluid animations, and seamless UX—capturing the agency's artistic and strategic essence.",
       hashtags: "Creative Studio  #Minimal Design #BoldTypography #WebExperience Design",
       reverse: false,
       hashtagsClass: "lowercase",
@@ -77,22 +70,13 @@ function Showcase() {
       id: "Twogood",
       video: twogood,
       title: "TWO GOOD CO",
-      description:
-        "Two Good Co is a purpose-driven eCommerce brand supporting women impacted by trauma. We designed a meaningful, high-performing website that showcases their products while telling a powerful story of social impact and inspiring support.",
+      description: "Two Good Co is a purpose-driven eCommerce brand supporting women impacted by trauma. We designed a meaningful, high-performing website that showcases their products while telling a powerful story of social impact and inspiring support.",
       hashtags: "#Purpose Driven Design #eCommerce Development #Social Impact Brand #Inclusive Design",
       reverse: true,
       hashtagsClass: "lowercase",
       url: "https://twoo-good-co.vercel.app/",
     },
-  ];
-
-  const debounce = useCallback((func, wait = 300) => {
-    let timeout;
-    return (...args) => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func(...args), wait);
-    };
-  }, []);
+  ], []);
 
   const calculateGridSettings = useCallback(() => {
     const width = window.innerWidth;
@@ -101,25 +85,19 @@ function Showcase() {
     return { gap: 170, count: 28, cellSize: 170 };
   }, []);
 
-  // Optimized grid alignment with batched DOM operations
   const alignProjectsToGrid = useCallback((settings = gridSettings) => {
-    // Use requestAnimationFrame to batch DOM operations
     requestAnimationFrame(() => {
       const pad = Math.round(settings.cellSize / 2);
       
       projectRefs.current.forEach((el) => {
         if (!el) return;
         
-        // Batch style changes
-        const styles = {
+        Object.assign(el.style, {
           paddingLeft: `${pad}px`,
           paddingRight: `${pad}px`,
-        };
-        
-        Object.assign(el.style, styles);
+        });
       });
 
-      // Second RAF for height calculations to avoid layout thrashing
       requestAnimationFrame(() => {
         projectRefs.current.forEach((el) => {
           if (!el) return;
@@ -130,121 +108,95 @@ function Showcase() {
     });
   }, [gridSettings]);
 
-  useEffect(() => {
-    const onResize = () => {
-      const newSettings = calculateGridSettings();
-      setGridSettings(newSettings);
-      alignProjectsToGrid(newSettings);
-      
-      // Throttled ScrollTrigger refresh
-      requestAnimationFrame(() => {
-        ScrollTrigger.refresh();
-      });
-    };
-
-    const debouncedResize = debounce(onResize);
-    window.addEventListener("resize", debouncedResize, { passive: true });
-
-    return () => window.removeEventListener("resize", debouncedResize);
-  }, [debounce, calculateGridSettings, alignProjectsToGrid]);
-
-  useEffect(() => {
-    alignProjectsToGrid();
-
-    // Clean up previous animations
+  const createScrollAnimations = useCallback(() => {
     if (animationContextRef.current) {
       animationContextRef.current.revert();
     }
 
     const ctx = gsap.context(() => {
-      // Create a timeline for better performance
-      
       projects.forEach((project) => {
         const triggerEl = `.${project.id}-Showcase`;
         const faceEl = `.${project.id}-Face`;
         const infoEl = `.${project.id}-Info`;
 
-        // Set initial states without animation
         gsap.set([faceEl, infoEl], { 
           y: 100, 
           opacity: 0,
-          force3D: true, // Enable hardware acceleration
           transformOrigin: "center center"
         });
 
-        // Optimized scroll triggers with reduced frequency
+        const animateIn = () => {
+          gsap.to(faceEl, {
+            y: 0,
+            opacity: 1,
+            duration: 1,
+            ease: "power2.out"
+          });
+          
+          gsap.to(infoEl, {
+            y: 0,
+            opacity: 1,
+            duration: 1.2,
+            delay: 0.15,
+            ease: "power2.out"
+          });
+        };
+
+        const animateOut = () => {
+          gsap.to([faceEl, infoEl], {
+            y: 100,
+            opacity: 0,
+            duration: 0.8,
+            ease: "power2.in"
+          });
+        };
+
         ScrollTrigger.create({
           trigger: triggerEl,
           start: "top 85%",
           end: "bottom 15%",
-          onEnter: () => {
-            // Animate face element
-            gsap.to(faceEl, {
-              y: 0,
-              opacity: 1,
-              duration: 1,
-              ease: "power2.out",
-              force3D: true,
-            });
-            
-            // Stagger info animation slightly
-            gsap.to(infoEl, {
-              y: 0,
-              opacity: 1,
-              duration: 1.2,
-              delay: 0.15,
-              ease: "power2.out",
-              force3D: true,
-            });
-          },
-          onLeave: () => {
-            gsap.to([faceEl, infoEl], {
-              y: 100,
-              opacity: 0,
-              duration: 0.8,
-              ease: "power2.in",
-              force3D: true,
-            });
-          },
-          onEnterBack: () => {
-            gsap.to(faceEl, {
-              y: 0,
-              opacity: 1,
-              duration: 1,
-              ease: "power2.out",
-              force3D: true,
-            });
-            
-            gsap.to(infoEl, {
-              y: 0,
-              opacity: 1,
-              duration: 1.2,
-              delay: 0.15,
-              ease: "power2.out",
-              force3D: true,
-            });
-          },
-          onLeaveBack: () => {
-            gsap.to([faceEl, infoEl], {
-              y: 100,
-              opacity: 0,
-              duration: 0.8,
-              ease: "power2.in",
-              force3D: true,
-            });
-          },
+          onEnter: animateIn,
+          onEnterBack: animateIn,
+          onLeave: animateOut,
+          onLeaveBack: animateOut
         });
       });
     }, showcaseRef);
 
     animationContextRef.current = ctx;
+  }, [projects]);
+
+  // Debounced resize handler
+  useEffect(() => {
+    let timeoutId;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const newSettings = calculateGridSettings();
+        setGridSettings(newSettings);
+        alignProjectsToGrid(newSettings);
+        ScrollTrigger.refresh();
+      }, 150);
+    };
+
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [calculateGridSettings, alignProjectsToGrid]);
+
+  // Initialize grid and animations
+  useEffect(() => {
+    alignProjectsToGrid();
+    createScrollAnimations();
 
     return () => {
       if (animationContextRef.current) {
         animationContextRef.current.revert();
       }
     };
-  }, [projects, alignProjectsToGrid]);
+  }, [alignProjectsToGrid, createScrollAnimations]);
 
   const VisitButton = ({ url }) => (
     <div className="font-[Familjen_Grotesk] bg-[#D9D9D9] w-fit leading-none border border-[#D9D9D9]/30 hover:scale-95 active:scale-100 px-4 py-1 rounded-full flex items-center justify-center gap-4 transition-all ease-in duration-300 group hover:bg-[#27170e]">
@@ -266,7 +218,7 @@ function Showcase() {
 
   return (
     <div ref={showcaseRef} className="bg-[#1e110a] overflow-hidden py-32 w-full relative" id="showcase-section">
-      <div className=" md:px-16 lg:px-24 flex flex-col gap-24 md:gap-32 lg:gap-36 pt-32 justify-start items-start  lg:justify-center lg:items-center w-full relative z-10 ">
+      <div className="px-1 sm:px-6 md:px-16 lg:px-24 flex flex-col gap-24 md:gap-32 lg:gap-36 pt-32 justify-start items-start lg:justify-center lg:items-center w-full relative z-10">
         {projects.map((project, index) => (
           <div
             key={project.id}
@@ -282,7 +234,6 @@ function Showcase() {
                 playsInline
                 preload="metadata"
                 loading="lazy"
-                style={{ willChange: 'transform' }}
               >
                 <source src={project.video} type="video/mp4" />
               </video>
@@ -292,14 +243,27 @@ function Showcase() {
                 <img src={stick} alt="Sticker" className="h-full w-full" />
               </div>
               <div className={`pl-0 sm:pl-4 md:pl-8 ${project.reverse ? "lg:pr-16 lg:pl-0" : "lg:pl-16"} text-[#D9D9D9]`}>
-                <h3 className={`${project.id}-Title font-black text-white font-[Familjen_Grotesk] capitalize whitespace-nowrap tracking-wide`} style={{ fontSize: "clamp(1.2rem, 2vw, 1.7vw)" }}>
+                <h3 
+                  className={`${project.id}-Title font-black text-white font-[Familjen_Grotesk] capitalize whitespace-nowrap tracking-wide text-left`} 
+                  style={{ fontSize: "clamp(1.2rem, 2vw, 1.7vw)" }}
+                >
                   {project.title}
                 </h3>
-                <p className={`${project.id}-About pt-4 md:pt-6 text-white/80 font-[Familjen_Grotesk] leading-tight`} style={{ fontSize: "clamp(1.2rem, 1.5vw, 1.2vw)" }} dangerouslySetInnerHTML={{ __html: project.description }} />
-                <p className={`${project.id}-Hashtags py-6 text-zinc-300 md:py-10 font-[Roboto_flex] leading-tight ${project.hashtagsClass || ""}`} style={{ fontSize: "clamp(1.1rem, 1vw, 1.1vw)" }}>
+                <p 
+                  className={`${project.id}-About pt-4 md:pt-6 text-white/80 font-[Familjen_Grotesk] leading-tight text-left`} 
+                  style={{ fontSize: "clamp(1.2rem, 1.5vw, 1.2vw)" }}
+                >
+                  {project.description}
+                </p>
+                <p 
+                  className={`${project.id}-Hashtags py-6 text-zinc-300 md:py-10 font-[Roboto_flex] leading-tight text-left ${project.hashtagsClass || ""}`} 
+                  style={{ fontSize: "clamp(1.1rem, 1vw, 1.1vw)" }}
+                >
                   {project.hashtags}
                 </p>
-                <VisitButton url={project.url} />
+                <div className="flex justify-start">
+                  <VisitButton url={project.url} />
+                </div>
               </div>
             </div>
           </div>
@@ -310,4 +274,3 @@ function Showcase() {
 }
 
 export default Showcase;
-

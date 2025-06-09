@@ -1,188 +1,200 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
 function Footer() {
+  const [isInitialized, setIsInitialized] = useState(false);
   const buttonRef = useRef(null);
   const borderRef = useRef(null);
   const textRefs = useRef([]);
   const mainContainerRef = useRef(null);
   const footerContentRef = useRef(null);
   const footerLastRef = useRef(null);
-
   const hoverAnimation = useRef(null);
 
   useEffect(() => {
-    textRefs.current = [];
+    // Small delay to ensure DOM is fully ready
+    const initTimer = setTimeout(() => {
+      textRefs.current = [];
 
-    const ctx = gsap.context(() => {
-      // Set initial states immediately to prevent layout shifts
-      gsap.set(textRefs.current, {
-        y: 100,
-        opacity: 0,
-      });
-
-      gsap.set(buttonRef.current, {
-        scale: 0.7,
-        opacity: 0,
-        y: 40,
-      });
-
-      gsap.set(borderRef.current, {
-        opacity: 0,
-        scale: 0.8,
-      });
-
-      gsap.set(footerLastRef.current, {
-        y: 30,
-        opacity: 0,
-      });
-
-      // Set container to be immediately visible to prevent flash
-      gsap.set(mainContainerRef.current, {
-        opacity: 1,
-      });
-
-      gsap.set('.footer-head', {
-        scale: 1,
-        opacity: 1,
-      });
-
-      // Main entrance timeline
-      const mainTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: footerContentRef.current,
-          start: 'top 80%',
-          end: 'top 30%',
-          scrub: 0.5,
-          toggleActions: 'play none none reverse',
-        },
-        defaults: { ease: 'power2.out' },
-      });
-
-      mainTl
-        .to(textRefs.current, {
-          y: 0,
-          opacity: 1,
-          stagger: 0.15,
-          duration: 0.8,
-          ease: 'power3.out',
-        })
-        .to(
-          buttonRef.current,
-          {
-            scale: 1,
-            opacity: 1,
-            y: 0,
-            duration: 0.6,
-            ease: 'back.out(1.7)',
-          },
-          '-=0.4'
-        )
-        .to(
-          borderRef.current,
-          {
-            opacity: 0.1,
-            scale: 1,
-            duration: 0.4,
-          },
-          '<'
-        )
-        .to(
-          footerLastRef.current,
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.5,
-          },
-          '-=0.2'
-        );
-
-      // Parallax text float
-      gsap.to(textRefs.current, {
-        yPercent: -20,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: footerContentRef.current,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: true,
-        },
-      });
-
-      // Floating text effect
-      textRefs.current.forEach((el, index) => {
-        gsap.to(el, {
-          y: '+=8',
-          duration: 2,
-          ease: 'sine.inOut',
-          yoyo: true,
-          repeat: -1,
-          delay: index * 0.2,
+      const ctx = gsap.context(() => {
+        // Set initial states immediately to prevent layout shifts
+        gsap.set(textRefs.current, {
+          y: 100,
+          opacity: 0,
         });
-      });
 
-      // Footer last section fade up
-      gsap.fromTo(
-        footerLastRef.current,
-        { y: 20, opacity: 0 },
-        {
-          y: 0,
+        gsap.set(buttonRef.current, {
+          scale: 0.7,
+          opacity: 0,
+          y: 40,
+        });
+
+        gsap.set(borderRef.current, {
+          opacity: 0,
+          scale: 0.8,
+        });
+
+        gsap.set(footerLastRef.current, {
+          y: 30,
+          opacity: 0,
+        });
+
+        // Set container to be immediately visible to prevent flash
+        gsap.set(mainContainerRef.current, {
           opacity: 1,
-          duration: 0.8,
-          ease: 'power2.out',
+        });
+
+        gsap.set('.footer-head', {
+          scale: 1,
+          opacity: 1,
+        });
+
+        // Mark as initialized after setting initial states
+        setIsInitialized(true);
+
+        // Main entrance timeline
+        const mainTl = gsap.timeline({
           scrollTrigger: {
             trigger: footerContentRef.current,
-            start: 'top 70%',
+            start: 'top 80%',
+            end: 'top 30%',
+            scrub: 0.5,
+            toggleActions: 'play none none reverse',
           },
+          defaults: { ease: 'power2.out' },
+        });
+
+        mainTl
+          .to(textRefs.current, {
+            y: 0,
+            opacity: 1,
+            stagger: 0.15,
+            duration: 0.8,
+            ease: 'power3.out',
+          })
+          .to(
+            buttonRef.current,
+            {
+              scale: 1,
+              opacity: 1,
+              y: 0,
+              duration: 0.6,
+              ease: 'back.out(1.7)',
+            },
+            '-=0.4'
+          )
+          .to(
+            borderRef.current,
+            {
+              opacity: 0.1,
+              scale: 1,
+              duration: 0.4,
+            },
+            '<'
+          )
+          .to(
+            footerLastRef.current,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.5,
+            },
+            '-=0.2'
+          );
+
+        // Parallax text float
+        gsap.to(textRefs.current, {
+          yPercent: -20,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: footerContentRef.current,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+          },
+        });
+
+        // Floating text effect
+        textRefs.current.forEach((el, index) => {
+          gsap.to(el, {
+            y: '+=8',
+            duration: 2,
+            ease: 'sine.inOut',
+            yoyo: true,
+            repeat: -1,
+            delay: index * 0.2,
+          });
+        });
+
+        // Footer last section fade up
+        gsap.fromTo(
+          footerLastRef.current,
+          { y: 20, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: footerContentRef.current,
+              start: 'top 70%',
+            },
+          }
+        );
+
+        // Border rotation
+        hoverAnimation.current = gsap.to(borderRef.current, {
+          rotation: 360,
+          duration: 8,
+          ease: 'linear',
+          repeat: -1,
+          paused: true,
+        });
+
+        const handleMouseEnter = () => {
+          gsap.killTweensOf(borderRef.current, 'opacity,scale');
+          gsap.to(borderRef.current, {
+            opacity: 0.5,
+            scale: 1,
+            duration: 0.3,
+            ease: 'power2.inOut',
+          });
+          hoverAnimation.current.play();
+        };
+
+        const handleMouseLeave = () => {
+          gsap.killTweensOf(borderRef.current, 'opacity,scale');
+          gsap.to(borderRef.current, {
+            opacity: 0.1,
+            scale: 1.1,
+            duration: 0.3,
+            ease: 'power2.inOut',
+          });
+          hoverAnimation.current.pause();
+        };
+
+        if (buttonRef.current) {
+          buttonRef.current.addEventListener('mouseenter', handleMouseEnter);
+          buttonRef.current.addEventListener('mouseleave', handleMouseLeave);
         }
-      );
 
-      // Border rotation
-      hoverAnimation.current = gsap.to(borderRef.current, {
-        rotation: 360,
-        duration: 8,
-        ease: 'linear',
-        repeat: -1,
-        paused: true,
-      });
-
-      const handleMouseEnter = () => {
-        gsap.killTweensOf(borderRef.current, 'opacity,scale');
-        gsap.to(borderRef.current, {
-          opacity: 0.5,
-          scale: 1,
-          duration: 0.3,
-          ease: 'power2.inOut',
-        });
-        hoverAnimation.current.play();
-      };
-
-      const handleMouseLeave = () => {
-        gsap.killTweensOf(borderRef.current, 'opacity,scale');
-        gsap.to(borderRef.current, {
-          opacity: 1,
-          scale: 1.1,
-          duration: 0.3,
-          ease: 'power2.inOut',
-        });
-        hoverAnimation.current.pause();
-      };
-
-      buttonRef.current.addEventListener('mouseenter', handleMouseEnter);
-      buttonRef.current.addEventListener('mouseleave', handleMouseLeave);
+        return () => {
+          if (buttonRef.current) {
+            buttonRef.current.removeEventListener('mouseenter', handleMouseEnter);
+            buttonRef.current.removeEventListener('mouseleave', handleMouseLeave);
+          }
+        };
+      }, mainContainerRef);
 
       return () => {
-        buttonRef.current?.removeEventListener('mouseenter', handleMouseEnter);
-        buttonRef.current?.removeEventListener('mouseleave', handleMouseLeave);
+        ctx.revert();
       };
-    }, mainContainerRef);
+    }, 50); // Increased delay to ensure proper initialization
 
-    return () => {
-      ctx.revert();
-    };
+    return () => clearTimeout(initTimer);
   }, []);
 
   const addToRefs = (el) => {
@@ -192,7 +204,15 @@ function Footer() {
   };
 
   return (
-    <div id="contact" ref={mainContainerRef} className="overflow-hidden px-3 bg-[#1e110a]">
+    <div 
+      id="contact" 
+      ref={mainContainerRef} 
+      className="overflow-hidden px-3 bg-[#1e110a]"
+      style={{ 
+        opacity: isInitialized ? 1 : 0,
+        transition: 'opacity 0.1s ease-in-out'
+      }}
+    >
       <div
         ref={footerContentRef}
         className="footer-content min-h-screen w-full relative bg-[#1e110a]"
@@ -256,19 +276,6 @@ function Footer() {
             <p className="text-zinc-700 font-[Familjen_Grotesk] whitespace-nowrap text-sm sm:text-xs md:text-sm">
               © 2025 Aakaar Digital. All rights reserved.
             </p>
-          </div>
-
-          <div className="call flex gap-1 items-center justify-center lg:justify-end">
-            <div className="text-zinc-700">
-              <p>
-                <ion-icon name="call-outline"></ion-icon>
-              </p>
-            </div>
-            <div>
-              <p className="text-zinc-700 font-[Familjen_Grotesk] text-sm sm:text-xs md:text-sm">
-                +91 9689762896
-              </p>
-            </div>
           </div>
         </div>
       </div>
