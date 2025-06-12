@@ -29,7 +29,7 @@ function About() {
       imgSrc: "https://i.pinimg.com/736x/6e/74/34/6e74348f55ed5379f8df0e2e37a4f0d7.jpg",
       isCenter: false,
     },
-  ], [c1]);
+  ], []);
 
   // Memoized content variations
   const contentVariations = useMemo(() => [
@@ -46,7 +46,7 @@ function About() {
   ], []);
 
   const aboutParagraphs = useMemo(() => [
-    <span key="p1" className="font-black text-start bg-green-900  text-white">
+    <span key="p1" className="font-black text-start   text-white">
       I'm Abhiman Jaware, The founder of <span className="capitalize"><a href="">aakaar.digital.</a></span>
     </span>,
     "a premium web design studio based in Nashik. With a refined eye for aesthetics and a passion for handcrafted code.",
@@ -347,6 +347,7 @@ function About() {
   };
 
   // Optimized content switching
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const setupContentSwitching = () => {
     if (contentVariations.length <= 1) return;
 
@@ -463,7 +464,7 @@ function About() {
       contextRefs.current.forEach(tl => tl?.kill?.());
       ScrollTrigger.getAll().forEach(st => st.kill());
     };
-  }, [contentVariations]);
+  }, [contentVariations, setupContentSwitching]);
 
   return (
     <div ref={componentRef} className="about bg-[#1e110a] overflow-x-hidden">

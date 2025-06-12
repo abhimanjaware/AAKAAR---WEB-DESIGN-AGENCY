@@ -15,24 +15,32 @@ import Why from '../Component/Why'
 import Footer from '../Component/Footer'
 import ScrollToTopButton from '../Component/ScrollToTopButton'
 import LocomotiveScroll from 'locomotive-scroll';
+import { useEffect, useState } from 'react'
 
 
 
 function Home() {
 
+  const [isLoaded, setIsLoaded] = useState(false);
 
+  useEffect(()=>{
+    setTimeout(()=>setIsLoaded(true), 3000)
+  },[])
   return (
     <div className='bg-[#1e110a] overflow-x-hidden'>
 
      <ScrollToTopButton/>
     
      <Loader/>
-       <Navbar/>
-       <Hero/>
+     {isLoaded&&(<div className={`main-content`}>
 
+      
+       {/* <Hero/> */}
+
+       <Navbar/>
    
        
-       <About/> 
+       {/* <About/>  */}
       {/* <Showcase/>  */}
        <Projects/>
        
@@ -41,6 +49,8 @@ function Home() {
        <Why/>
        <Testimonials/>
        <Footer/>
+
+     </div>)}
        {/* <Button/>
 
       {/* <Counter/> */}

@@ -5,9 +5,10 @@ import logo from "../assets/images/logogogogogo.png"
 const Navbar = () => {
   const [isActive, setIsActive] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [scrollDirection, setScrollDirection] = useState("up");
+  const [scrollDirection, setScrollDirection] = useState(null); // Start with null to hide initially
   const [lastScrollTop, setLastScrollTop] = useState(0);
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Consolidated menu data
   const menuItems = [
@@ -48,19 +49,31 @@ const Navbar = () => {
     gsap.set(".main-menu-lists .menu-list a", { opacity: 0, y: 50 });
     gsap.set(".nav-socials", { opacity: 0 });
     gsap.set([".page-transition", ".page-transition-1", ".page-transition-2"], { y: "100%" });
+    
+    // Set initial scroll direction after a brief delay to prevent flash
+    setTimeout(() => {
+      setScrollDirection("up");
+      setIsInitialized(true);
+    }, 100);
   }, []);
 
   // Scroll direction handler
   useEffect(() => {
+    if (!isInitialized) return;
+    
     const handleScroll = () => {
       const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      setScrollDirection(currentScrollTop > lastScrollTop ? "down" : "up");
-      setLastScrollTop(Math.max(currentScrollTop, 0));
+      
+      // Only update if there's significant scroll difference to avoid jitter
+      if (Math.abs(currentScrollTop - lastScrollTop) > 5) {
+        setScrollDirection(currentScrollTop > lastScrollTop ? "down" : "up");
+        setLastScrollTop(Math.max(currentScrollTop, 0));
+      }
     };
     
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollTop]);
+  }, [lastScrollTop, isInitialized]);
 
   // Body scroll lock management
   useEffect(() => {
@@ -144,39 +157,84 @@ const Navbar = () => {
     if (isTransitioning) return;
     
     setIsTransitioning(true);
+    
     const tl = gsap.timeline({
       onComplete: () => {
-        // Reset transitions
-        gsap.to([".page-transition-2", ".page-transition-1", ".page-transition"], 
-          { y: "100%", duration: 0.5, ease: "power3.inOut", stagger: 0.2 });
-        gsap.to([".overlay-2", ".overlay-1", ".overlay"], 
-          { y: "-100%", duration: 0.5, ease: "power3.inOut", stagger: 0.2 });
-        
+        // Reset all overlays after animation completes
         setTimeout(() => {
           setIsTransitioning(false);
           setIsActive(false);
-          window.location.href = targetPath;
-        }, 600);
+          gsap.set([".page-transition", ".page-transition-1", ".page-transition-2"], { y: "100%" });
+          gsap.set([".overlay", ".overlay-1", ".overlay-2"], { y: "-100%" });
+        }, 100);
       }
     });
-    
-    // Close menu if active
+
+    // Close menu if active with smooth animation
     if (isActive) {
-      tl.to(".main-menu-lists .menu-list a", { opacity: 0, y: 50, duration: 0.4, stagger: 0.05, ease: "power2.in" })
-        .to(".nav-socials", { opacity: 0, y: 20, duration: 0.4, ease: "power2.in" }, "-=0.2");
+      tl.to(".main-menu-lists .menu-list a", { 
+        opacity: 0, 
+        y: 50, 
+        duration: 0.4, 
+        stagger: 0.02, 
+        ease: "power2.in" 
+      })
+      .to(".nav-socials", { 
+        opacity: 0, 
+        y: 20, 
+        duration: 0.4, 
+        ease: "power2.in" 
+      }, "-=0.2");
     }
 
-    // Page transition
+    // Page transition animation for all navigation
     tl.fromTo([".page-transition", ".page-transition-1", ".page-transition-2"], 
       { y: "100%" }, 
-      { y: 0, duration: 0.6, ease: "power3.inOut", stagger: 0.1 });
+      { 
+        y: 0, 
+        duration: 0.8, 
+        ease: "power3.inOut", 
+        stagger: 0.15
+      }, isActive ? "-=0.2" : "0")
+    .call(() => {
+      // Navigate right when the screen is fully covered
+      if (targetPath === "/" || targetPath.startsWith("http")) {
+        // For home page or external links
+        window.location.href = targetPath;
+      } else {
+        // For hash links (same page navigation), smooth scroll
+        const targetElement = document.querySelector(targetPath);
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    })
+    .to([".page-transition-2", ".page-transition-1", ".page-transition"], 
+      { 
+        y: "-100%", 
+        duration: 0.8, 
+        ease: "power3.inOut", 
+        stagger: 0.15 
+      }, "+=0.2");
+
+    // Close overlay menu animation
+    if (isActive) {
+      tl.to([".overlay-2", ".overlay-1", ".overlay"], 
+        { 
+          y: "-100%", 
+          duration: 0.6, 
+          ease: "power3.inOut", 
+          stagger: 0.1 
+        }, "-=1.2");
+    }
+
   }, [isActive, isTransitioning]);
 
   // Reusable nav link component
   const NavLink = ({ item, className = "", textSize = "" }) => (
     <div className="menu-list relative overflow-hidden cursor-pointer">
       <a 
-        href="#" 
+        href={item.href} 
         className={`button leading-none relative flex flex-row-reverse items-end justify-start overflow-hidden transition-all ease-in duration-300 group ${className}`}
         onClick={(e) => handleNavLinkClick(e, item.href)}
       >
@@ -184,7 +242,7 @@ const Navbar = () => {
           <span className={`block font-bold leading-none font-[Familjen_Grotesk] transition-all ease-in duration-300 text-white text-center group-hover:translate-y-[-80%] group-focus:translate-y-[-100%] capitalize tracking-tight group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap ${textSize}`}>
             {item.name}
           </span>
-          <span className={`absolute leading-none font-[Tangerine] tracking-tight font-bold flex justify-center items-start transition-all ease-in duration-300 text-white text-center opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap ${textSize.includes('text-[7') ? 'text-[7.5vw]' : textSize}`}>
+          <span className={`absolute leading-none font-[Tangerine] tracking-tight font-bold flex justify-center items-start transition-all ease-in duration-300 text-white text-center opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap ${textSize.includes('text-[6') ? 'text-[7.5vw]' : textSize.replace('text-5xl', 'text-6xl').replace('text-8xl', 'text-9xl')}`}>
             {item.cursive}
           </span>
         </div>
@@ -204,7 +262,7 @@ const Navbar = () => {
         <div className="absolute inset-0 bg-yellow-500/0 z-[-1] mix-blend-difference pointer-events-none"></div>
 
         <div className="logo text-white text-xl leading-none font-medium">
-          <a href="#" onClick={(e) => handleNavLinkClick(e, "/")}>
+          <a href="/" onClick={(e) => handleNavLinkClick(e, "/")}>
             <img
               className="w-[16vw] md:w-[9vw] lg:w-[4.5vw] brightness-200 saturate-200 contrast-0 inline-block"
               src={logo}
@@ -215,7 +273,7 @@ const Navbar = () => {
 
         <div className="nav-right flex items-center justify-center gap-8 text-[.9vw]">
           <div className={`sticky-navlinks text-white px-6 border-r-[1px] border-white hidden lg:block transition-all duration-300 ${
-            scrollDirection === 'down' ? 'opacity-0 translate-y-[-20px]' : 'opacity-100 translate-y-0'
+            !isInitialized || scrollDirection === 'down' ? 'opacity-0 translate-y-[-20px]' : 'opacity-100 translate-y-0'
           }`}>
             <ul className="flex gap-7">
               {menuItems.map((item, index) => (
@@ -248,25 +306,25 @@ const Navbar = () => {
       <div className="page-transition-2 fixed top-0 left-0 w-screen h-screen bg-[#27170e] z-60 transform translate-y-full"></div>
 
       {/* Fixed Menu Overlay */}
-      <div className={`overlay fixed top-0 left-0  w-screen h-screen bg-black z-20 overflow-hidden ${isActive ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+      <div className={`overlay fixed top-0 left-0 w-screen h-screen bg-black z-20 overflow-hidden ${isActive ? 'pointer-events-auto' : 'pointer-events-none'}`}>
         <div className="overlay-1 absolute top-0 left-0 w-full h-full bg-[#d9d9d9a2] z-10" />
         <div className="overlay-2 absolute top-0 left-0 w-full h-full bg-[#27170e] z-20" />
         
-        <div className="content-wrapper  px-0 pt-4 leading-none fixed top-0 left-0 z-30 w-full h-full">
-          <div className="relative w-full  flex top-0 flex-col md:flex-row items-end justify-around md:items-center md:gap-10 lg:gap-20 xl:gap-96 p-8 md:p-16 lg:p-32 h-full overflow-hidden">
-            <div className="md:flex-row  md:gap-2.5 flex flex-col justify-end">
-              <div className="main-menu-lists w-full  flex flex-col items-end  md:w-[70%] lg:w-[90%] md:pr-10 lg:pr-40 md:border-r-[1px] border-zinc-500">
+        <div className="content-wrapper px-0 pt-4 leading-none fixed top-0 left-0 z-30 w-full h-full">
+          <div className="relative w-full flex top-0 flex-col md:flex-row items-end justify-around md:items-center md:gap-10 lg:gap-20 xl:gap-96 p-8 md:p-16 lg:p-32 h-full overflow-hidden">
+            <div className="md:flex-row md:gap-2.5 flex flex-col justify-end">
+              <div className="main-menu-lists w-full flex flex-col items-end md:w-[70%] lg:w-[90%] md:pr-10 lg:pr-40 md:border-r-[1px] border-zinc-500">
                 {menuItems.map((item, index) => (
                   <NavLink 
                     key={index}
                     item={item} 
-                    className="m-2 pt-2 mt-0  pr-0 lg:pr-8  gap-5" 
+                    className="m-2 pt-2 mt-0 pr-0 lg:pr-8 gap-5" 
                     textSize="text-5xl md:text-8xl lg:text-[6vw] text-[#D9D9D9]" 
                   />
                 ))}
               </div>
 
-              <div className="nav-right  w-full pt-8 lg:pl-24 md:w-[40%] lg:w-[50%] lg:items-center mt-10 md:mt-0 h-auto md:justify-end md:items-end flex flex-col items-center justify-center">
+              <div className="nav-right w-full pt-8 lg:pl-24 md:w-[40%] lg:w-[50%] lg:items-center mt-10 md:mt-0 h-auto md:justify-end md:items-end flex flex-col items-center justify-center">
                 <div className="nav-socials flex flex-col justify-center items-center overflow-hidden w-full">
                   <div className="overflow-hidden w-full text-end lg:text-center hidden md:block">
                     <div className="mail py-3 pt-9 w-full text-lg md:text-xl lg:text-xl leading-none text-white font-normal md:text-center">
@@ -280,6 +338,8 @@ const Navbar = () => {
                         key={index}
                         href={social.href} 
                         className={`text-2xl bg-white text-[#27170e] hover:text-${social.hoverColor} hover:font-black hover:scale-95 rounded-full p-3 flex justify-center items-center duration-300 focus:bg-gradient-to-b from-${social.fromColor} via-${social.viaColor} to-${social.toColor} focus:text-white`}
+                        target={social.href.startsWith('http') ? '_blank' : '_self'}
+                        rel={social.href.startsWith('http') ? 'noopener noreferrer' : ''}
                       >
                         <ion-icon name={social.name}></ion-icon>
                       </a>
@@ -288,7 +348,7 @@ const Navbar = () => {
                   
                   <div className="cta-btn w-full pt-2 flex justify-end lg:justify-center">
                     <div className="nav-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-5 py-1 relative rounded-full flex items-center justify-center gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
-                      <a href="https://sales.radianmedia.org" target="_blank" className="relative h-[3.5rem] flex items-center justify-center">
+                      <a href="https://sales.radianmedia.org" target="_blank" rel="noopener noreferrer" className="relative h-[3.5rem] flex items-center justify-center">
                         <div className="flex flex-col justify-center items-center relative">
                           <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[4vw] transition-all ease-in duration-300 text-[#27170e] text-center tracking-tighter group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
                             Let's Connect
