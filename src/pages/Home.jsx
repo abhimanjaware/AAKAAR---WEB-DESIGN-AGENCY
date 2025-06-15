@@ -35,14 +35,14 @@ function Home() {
      {isLoaded&&(<div className={`main-content`}>
 
       
-       {/* <Hero/> */}
+       <Hero/>
 
        <Navbar/>
    
        
        <About/> 
       {/* <Showcase/>  */}
-       <Projects/>
+       {/* <Projects/> */}
        
        <Process/>
        <Service/>
