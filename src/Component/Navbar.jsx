@@ -5,13 +5,22 @@ import logo from "../assets/images/logogogogogo.png"
 const Navbar = () => {
   const [isActive, setIsActive] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [scrollDirection, setScrollDirection] = useState(null); // Start with null to hide initially
+  const [scrollDirection, setScrollDirection] = useState(null);
   const [lastScrollTop, setLastScrollTop] = useState(0);
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Consolidated menu data
-  const menuItems = [
+  // Menu data for sticky nav
+  const stickyMenuItems = [
+    { name: "HOME", href: "/", cursive: "Home" },
+    { name: "ABOUT", href: "#about", cursive: "About" },
+    { name: "WORK", href: "#work", cursive: "Work" },
+    { name: "SERVICES", href: "#services", cursive: "Services" },
+    { name: "CONTACT", href: "#contact", cursive: "Contact" }
+  ];
+
+  // Menu data for overlay content
+  const overlayMenuItems = [
     { name: "HOME", href: "/", cursive: "Home" },
     { name: "ABOUT", href: "#about", cursive: "About" },
     { name: "WORK", href: "#work", cursive: "Work" },
@@ -64,7 +73,6 @@ const Navbar = () => {
     const handleScroll = () => {
       const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
       
-      // Only update if there's significant scroll difference to avoid jitter
       if (Math.abs(currentScrollTop - lastScrollTop) > 5) {
         setScrollDirection(currentScrollTop > lastScrollTop ? "down" : "up");
         setLastScrollTop(Math.max(currentScrollTop, 0));
@@ -151,8 +159,8 @@ const Navbar = () => {
     });
   }, [isTransitioning]);
 
-  // Optimized navigation handler
-  const handleNavLinkClick = useCallback((e, targetPath) => {
+  // Unified navigation handler for both sticky and overlay nav links
+  const handleNavLinkClick = useCallback((e, targetPath, isOverlayLink = false) => {
     e.preventDefault();
     if (isTransitioning) return;
     
@@ -160,18 +168,20 @@ const Navbar = () => {
     
     const tl = gsap.timeline({
       onComplete: () => {
-        // Reset all overlays after animation completes
         setTimeout(() => {
           setIsTransitioning(false);
-          setIsActive(false);
+          // Only close the menu if we're clicking an overlay link
+          if (isOverlayLink) {
+            setIsActive(false);
+          }
           gsap.set([".page-transition", ".page-transition-1", ".page-transition-2"], { y: "100%" });
           gsap.set([".overlay", ".overlay-1", ".overlay-2"], { y: "-100%" });
         }, 100);
       }
     });
 
-    // Close menu if active with smooth animation
-    if (isActive) {
+    // Close menu if active with smooth animation (only for overlay links)
+    if (isActive && isOverlayLink) {
       tl.to(".main-menu-lists .menu-list a", { 
         opacity: 0, 
         y: 50, 
@@ -195,18 +205,17 @@ const Navbar = () => {
         duration: 0.8, 
         ease: "power3.inOut", 
         stagger: 0.15
-      }, isActive ? "-=0.2" : "0")
+      }, isActive && isOverlayLink ? "-=0.2" : "0")
     .call(() => {
-      // Navigate right when the screen is fully covered
-      if (targetPath === "/" || targetPath.startsWith("http")) {
-        // For home page or external links
+      if (targetPath === "/") {
         window.location.href = targetPath;
-      } else {
-        // For hash links (same page navigation), smooth scroll
+      } else if (targetPath.startsWith("#")) {
         const targetElement = document.querySelector(targetPath);
         if (targetElement) {
           targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+      } else if (targetPath.startsWith("http")) {
+        window.open(targetPath, '_blank');
       }
     })
     .to([".page-transition-2", ".page-transition-1", ".page-transition"], 
@@ -217,8 +226,8 @@ const Navbar = () => {
         stagger: 0.15 
       }, "+=0.2");
 
-    // Close overlay menu animation
-    if (isActive) {
+    // Close overlay menu animation (only for overlay links)
+    if (isActive && isOverlayLink) {
       tl.to([".overlay-2", ".overlay-1", ".overlay"], 
         { 
           y: "-100%", 
@@ -227,16 +236,15 @@ const Navbar = () => {
           stagger: 0.1 
         }, "-=1.2");
     }
-
   }, [isActive, isTransitioning]);
 
   // Reusable nav link component
-  const NavLink = ({ item, className = "", textSize = "" }) => (
+  const NavLink = ({ item, className = "", textSize = "", isOverlay = false }) => (
     <div className="menu-list relative overflow-hidden cursor-pointer">
       <a 
         href={item.href} 
         className={`button leading-none relative flex flex-row-reverse items-end justify-start overflow-hidden transition-all ease-in duration-300 group ${className}`}
-        onClick={(e) => handleNavLinkClick(e, item.href)}
+        onClick={(e) => handleNavLinkClick(e, item.href, isOverlay)}
       >
         <div className="flex flex-col justify-center items-center relative w-full overflow-hidden">
           <span className={`block font-bold leading-none font-[Familjen_Grotesk] transition-all ease-in duration-300 text-white text-center group-hover:translate-y-[-80%] group-focus:translate-y-[-100%] capitalize tracking-tight group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap ${textSize}`}>
@@ -246,7 +254,7 @@ const Navbar = () => {
             {item.cursive}
           </span>
         </div>
-        {className.includes('m-2') && (
+        {isOverlay && (
           <div className="rounded-full group-hover:-rotate-45 opacity-0 group-hover:opacity-100 absolute left-0 transition-all ease-in group-hover:duration-300 text-zinc-200 font-light">
             <ion-icon name="arrow-forward-outline" size="large"></ion-icon>
           </div>
@@ -276,7 +284,7 @@ const Navbar = () => {
             !isInitialized || scrollDirection === 'down' ? 'opacity-0 translate-y-[-20px]' : 'opacity-100 translate-y-0'
           }`}>
             <ul className="flex gap-7">
-              {menuItems.map((item, index) => (
+              {stickyMenuItems.map((item, index) => (
                 <li key={index}>
                   <NavLink item={item} />
                 </li>
@@ -314,12 +322,13 @@ const Navbar = () => {
           <div className="relative w-full flex top-0 flex-col md:flex-row items-end justify-around md:items-center md:gap-10 lg:gap-20 xl:gap-96 p-8 md:p-16 lg:p-32 h-full overflow-hidden">
             <div className="md:flex-row md:gap-2.5 flex flex-col justify-end">
               <div className="main-menu-lists w-full flex flex-col items-end md:w-[70%] lg:w-[90%] md:pr-10 lg:pr-40 md:border-r-[1px] border-zinc-500">
-                {menuItems.map((item, index) => (
+                {overlayMenuItems.map((item, index) => (
                   <NavLink 
                     key={index}
                     item={item} 
                     className="m-2 pt-2 mt-0 pr-0 lg:pr-8 gap-5" 
                     textSize="text-5xl md:text-8xl lg:text-[6vw] text-[#D9D9D9]" 
+                    isOverlay={true}
                   />
                 ))}
               </div>

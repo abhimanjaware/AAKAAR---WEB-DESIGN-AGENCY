@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { useGSAP } from "@gsap/react";
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -19,10 +19,14 @@ export default function Hero() {
     setIsMobile(window.innerWidth < 768);
   }, []);
 
-  useGSAP(() => {
+  useEffect(() => {
     checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, [checkMobile]);
 
-    // Initial setup
+  useGSAP(() => {
+    // Entry Reveal Animation for All Devices
     gsap.set([imageRef.current, ctaRef.current], {
       opacity: 0,
       clearProps: "transform"
@@ -37,7 +41,6 @@ export default function Hero() {
       y: 50
     });
 
-    // Entry animation
     const tl = gsap.timeline();
     tl.to(imageRef.current, {
       opacity: 1,
@@ -52,24 +55,16 @@ export default function Hero() {
       ease: "back.out(1.7)"
     }, "-=0.8");
 
-    // Breathing animation
-    const breathingTween = gsap.to(imageRef.current, {
-      scale: 1.02,
-      duration: 8,
-      ease: "sine.inOut",
-      repeat: -1,
-      yoyo: true,
-      paused: true
-    });
-    breathingTween.play();
+    // Skip further animation if mobile
+    if (isMobile) return;
 
-    // Scroll animation
+    // Scroll animation for desktop
     gsap.fromTo(frameRef.current, {
-      scale: isMobile ? 0.6 : 0.4,
-      y: isMobile ? -300 : -600
+      scale: 0.4,
+      y: -600
     }, {
       scale: 1,
-      y: isMobile ? 50 : 100,
+      y: 100,
       scrollTrigger: {
         trigger: heroRef.current,
         start: "top top",
@@ -79,109 +74,104 @@ export default function Hero() {
       }
     });
 
-    // Mouse interactions (desktop only)
-    if (!('ontouchstart' in window)) {
-      let mouseX = 0, mouseY = 0, lastX = 0, lastY = 0;
-      let animationId = null;
-      let rect = null;
+    // Breathing + Mouse Parallax for Desktop
+    const breathingTween = gsap.to(imageRef.current, {
+      scale: 1.02,
+      duration: 8,
+      ease: "sine.inOut",
+      repeat: -1,
+      yoyo: true
+    });
 
-      const updateRect = () => {
-        if (containerRef.current) {
-          rect = containerRef.current.getBoundingClientRect();
-        }
-      };
+    let mouseX = 0, mouseY = 0, lastX = 0, lastY = 0;
+    let animationId = null;
+    let rect = null;
 
-      const handleMouseMove = (e) => {
-        if (!rect) updateRect();
+    const updateRect = () => {
+      if (containerRef.current) rect = containerRef.current.getBoundingClientRect();
+    };
 
-        const intensityFactor = window.innerWidth < 768 ? 5 : 15;
-        mouseX = (((e.clientX - rect.left) / rect.width) - 0.5) * intensityFactor;
-        mouseY = (((e.clientY - rect.top) / rect.height) - 0.5) * intensityFactor;
+    const handleMouseMove = (e) => {
+      if (!rect) updateRect();
 
-        if (!animationId) {
-          animationId = requestAnimationFrame(updateElements);
-        }
-      };
+      const intensity = 15;
+      mouseX = (((e.clientX - rect.left) / rect.width) - 0.5) * intensity;
+      mouseY = (((e.clientY - rect.top) / rect.height) - 0.5) * intensity;
 
-      const updateElements = () => {
-        lastX += (mouseX - lastX) * 0.06;
-        lastY += (mouseY - lastY) * 0.06;
+      if (!animationId) animationId = requestAnimationFrame(updateElements);
+    };
 
-        gsap.to(imageRef.current, {
-          x: lastX * 1.2,
-          y: lastY * 1.2,
-          rotationY: lastX * 0.03,
-          rotationX: -lastY * 0.03,
-          duration: 0.2,
-          ease: "power1.out",
-          overwrite: "auto"
-        });
+    const updateElements = () => {
+      lastX += (mouseX - lastX) * 0.06;
+      lastY += (mouseY - lastY) * 0.06;
 
-        gsap.to(ctaRef.current, {
-          x: lastX * 0.4,
-          y: lastY * 0.4,
-          duration: 0.2,
-          ease: "power1.out",
-          overwrite: "auto"
-        });
+      gsap.to(imageRef.current, {
+        x: lastX * 1.2,
+        y: lastY * 1.2,
+        rotationY: lastX * 0.03,
+        rotationX: -lastY * 0.03,
+        duration: 0.2,
+        ease: "power1.out",
+        overwrite: "auto"
+      });
 
-        animationId = null;
-        if (Math.abs(mouseX - lastX) > 0.01 || Math.abs(mouseY - lastY) > 0.01) {
-          animationId = requestAnimationFrame(updateElements);
-        }
-      };
+      gsap.to(ctaRef.current, {
+        x: lastX * 0.4,
+        y: lastY * 0.4,
+        duration: 0.2,
+        ease: "power1.out",
+        overwrite: "auto"
+      });
 
-      const handleMouseEnter = () => {
-        breathingTween.pause();
-        gsap.to(imageRef.current, {
-          scale: 1.09,
-          duration: 0.8,
-          overwrite: "auto"
-        });
-      };
+      animationId = null;
+      if (Math.abs(mouseX - lastX) > 0.01 || Math.abs(mouseY - lastY) > 0.01) {
+        animationId = requestAnimationFrame(updateElements);
+      }
+    };
 
-      const handleMouseLeave = () => {
-        gsap.to(imageRef.current, {
-          scale: 1.09,
-          duration: 5,
-          onComplete: () => breathingTween.play()
-        });
+    const handleMouseEnter = () => {
+      breathingTween.pause();
+      gsap.to(imageRef.current, { scale: 1.09, duration: 0.8, overwrite: "auto" });
+    };
 
-        gsap.to([imageRef.current, ctaRef.current], {
-          x: 0,
-          y: 0,
-          rotationX: 0,
-          rotationY: 0,
-          duration: 1.4,
-          ease: "power2.inOut"
-        });
-      };
+    const handleMouseLeave = () => {
+      gsap.to(imageRef.current, {
+        scale: 1.09,
+        duration: 5,
+        onComplete: () => breathingTween.play()
+      });
 
-      const handleResize = () => {
-        checkMobile();
-        updateRect();
-        ScrollTrigger.refresh();
-      };
+      gsap.to([imageRef.current, ctaRef.current], {
+        x: 0,
+        y: 0,
+        rotationX: 0,
+        rotationY: 0,
+        duration: 1.4,
+        ease: "power2.inOut"
+      });
+    };
 
-      // Event listeners
-      containerRef.current?.addEventListener('mousemove', handleMouseMove);
-      containerRef.current?.addEventListener('mouseenter', handleMouseEnter);
-      containerRef.current?.addEventListener('mouseleave', handleMouseLeave);
-      window.addEventListener('resize', handleResize);
+    const handleResize = () => {
+      updateRect();
+      ScrollTrigger.refresh();
+    };
 
-      // Cleanup
-      return () => {
-        window.removeEventListener('resize', handleResize);
-        containerRef.current?.removeEventListener('mousemove', handleMouseMove);
-        containerRef.current?.removeEventListener('mouseenter', handleMouseEnter);
-        containerRef.current?.removeEventListener('mouseleave', handleMouseLeave);
-        
-        if (animationId) cancelAnimationFrame(animationId);
-        gsap.killTweensOf([imageRef.current, ctaRef.current]);
-        breathingTween.kill();
-      };
-    }
-  }, [isMobile, checkMobile]);
+    containerRef.current?.addEventListener('mousemove', handleMouseMove);
+    containerRef.current?.addEventListener('mouseenter', handleMouseEnter);
+    containerRef.current?.addEventListener('mouseleave', handleMouseLeave);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      containerRef.current?.removeEventListener('mousemove', handleMouseMove);
+      containerRef.current?.removeEventListener('mouseenter', handleMouseEnter);
+      containerRef.current?.removeEventListener('mouseleave', handleMouseLeave);
+
+      if (animationId) cancelAnimationFrame(animationId);
+      gsap.killTweensOf([imageRef.current, ctaRef.current]);
+      breathingTween.kill();
+    };
+  }, [isMobile]);
 
   return (
     <div ref={heroRef} className="relative w-full">
@@ -207,7 +197,7 @@ export default function Hero() {
             />
           </div>
 
-          {/* CTA Button - Fixed centering */}
+          {/* CTA Button */}
           <div className="absolute inset-x-0 bottom-10 md:bottom-16 lg:bottom-27 flex justify-center">
             <div
               ref={ctaRef}

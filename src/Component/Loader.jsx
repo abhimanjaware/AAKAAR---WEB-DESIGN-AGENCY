@@ -99,18 +99,22 @@ function Loader() {
     if (!shouldShowLoader) return;
 
     let animationId;
-    let currentValue = 0;
-    const targetValue = 100;
-    const increment = 1.4;
+    let startTime = null;
+    const totalDuration = 4000; // 4 seconds for counting
     
-    const updateCounter = () => {
-      currentValue += increment;
-      if (currentValue >= targetValue) {
+    const updateCounter = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / totalDuration, 1);
+      const currentValue = progress * 100;
+      
+      if (progress >= 1) {
         setPercentage(100);
         setBeamColor("white");
         setTimeout(() => setStartOutAnimation(true), 500);
         return;
       }
+      
       setPercentage(currentValue);
       animationId = requestAnimationFrame(updateCounter);
     };

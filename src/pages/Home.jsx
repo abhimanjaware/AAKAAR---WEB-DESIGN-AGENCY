@@ -40,7 +40,7 @@ function Home() {
        <Navbar/>
    
        
-       {/* <About/>  */}
+       <About/> 
       {/* <Showcase/>  */}
        <Projects/>
        

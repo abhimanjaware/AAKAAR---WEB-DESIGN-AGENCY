@@ -3,37 +3,45 @@ import gsap from 'gsap';
 
 const testimonials = [
   {
-    quote: '',
+    quote: 'Their team nailed the design aesthetics. The site feels smooth, responsive, and absolutely stunning.',
     name: 'Firefist Solution',
     role: 'Lead : Shan Shimpi ',
-    image: 'https://plus.unsplash.com/premium_photo-1661877737564-3dfd7282efcb?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y29kaW5nfGVufDB8fDB8fHww',
+    image: 'src/assets/images/shansir.png',
   },
   {
-    quote: 'It’s rare to find people who are this passionate about both design and code.',
+    quote: 'Elegant and modern. Perfectly aligned with our brand.',
     name: 'Web Designer',
     role: 'Varun Bhabra',
-    image: 'https://images.unsplash.com/photo-1512295767273-ac109ac3acfa?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDB8fHdlYiUyMGRlc2lnbmVyfGVufDB8fDB8fHww',
+    image: 'src/assets/images/varunbhbara.png',
   },
   {
-    quote: 'A beautiful blend of aesthetics and performance.',
+    quote: 'Blending creativity, speed, and elegance into one seamless experience. This is not just a site, it’s a masterpiece.',
     name: 'SparrowTeck Performance',
     role: 'Founder : Abhishek Pardesi',
-    image: 'https://media.istockphoto.com/id/937855500/photo/gears-detail.jpg?s=2048x2048&w=is&k=20&c=1uHHoFcCHrAWhnULaI_dkK9_P-VFEZGuJAqLXnYd398=',
+    image: 'src/assets/images/sparrowteck.png',
   },
   {
-    quote: 'Nothing was discussed except initial onboarding. He Understood what i wanted. only first review of the website made it to the final deployment',
+    quote: 'Nothing was discussed except initial onboarding. They Understood what i wanted. only first review of the website made it to the final deployment',
     name: 'Radian Media',
     role: 'Brand Architect : Hrushikesh Bhujbal ',
-    image: 'https://media.licdn.com/dms/image/v2/D5616AQEllz0rJOWPMg/profile-displaybackgroundimage-shrink_350_1400/profile-displaybackgroundimage-shrink_350_1400/0/1709229858896?e=1750291200&v=beta&t=KMaUxG1tNRn6W4U4ReIV2QZD66i36igZHs4mfn4grcU',
+    image: 'src/assets/images/rad.jpg',
   },
-  {
-    quote: 'Every element was handcrafted — and the result? A site that truly represents us.',
+
+   {
+    quote: 'Zero revisions needed. Truly premium service!',
     name: 'Digital Supermacy',
-    role: 'CEO : Gaurav Kor',
+    role: 'Sales Lead : Durvesh Patil',
     image: 'https://images.unsplash.com/photo-1705615791240-c35f4799863b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fGRpZ2l0YWwlMjBtYXJrdGluZ3xlbnwwfHwwfHx8MA%3D%3D',
   },
-];
+  {
+    quote: 'From fonts to animations, everything screams luxury. Aakaar took our brand to another level. Every detail was handled with care and perfection.',
+    name: 'Digital Supermacy',
+    role: 'CEO : Gaurav Kor',
+    image: 'src/assets/images/gauravkor.png',
+  },
 
+  
+];
 const TestimonialsGSAP = () => {
   const trackRef = useRef(null);
   const loopRef = useRef(null);
@@ -58,9 +66,9 @@ const TestimonialsGSAP = () => {
     const gap = parseFloat(getComputedStyle(container).gap) || (isMobile ? 2 : 4);
     const totalWidth = allCards.length * (cardWidth + gap);
 
-    loopRef.current = gsap.to(container, {
+    const loopAnim = gsap.to(container, {
       x: `-=${totalWidth / (cloneCount + 1)}`,
-      duration: 90,
+      duration: 100,
       ease: 'none',
       repeat: -1,
       modifiers: {
@@ -90,8 +98,28 @@ const TestimonialsGSAP = () => {
       },
     });
 
+    loopRef.current = loopAnim;
+
+    const pauseAnimation = () => loopAnim.pause();
+    const playAnimation = () => loopAnim.play();
+
+    allCards.forEach((card) => {
+      card.addEventListener('mouseenter', pauseAnimation);
+      card.addEventListener('mouseleave', playAnimation);
+      card.addEventListener('touchstart', () => {
+        if (isMobile) loopAnim.pause();
+      });
+    });
+
     return () => {
-      loopRef.current?.kill();
+      loopAnim.kill();
+      allCards.forEach((card) => {
+        card.removeEventListener('mouseenter', pauseAnimation);
+        card.removeEventListener('mouseleave', playAnimation);
+        card.removeEventListener('touchstart', () => {
+          if (isMobile) loopAnim.pause();
+        });
+      });
     };
   }, []);
 
@@ -106,7 +134,6 @@ const TestimonialsGSAP = () => {
         </span>
       </div>
 
-      {/* Gradient masks */}
       <div className="absolute top-0 bottom-0 left-0 w-20 sm:w-32 z-20 bg-gradient-to-r from-[#D9D9D9] to-transparent pointer-events-none" />
       <div className="absolute top-0 bottom-0 right-0 w-20 sm:w-32 z-20 bg-gradient-to-l from-[#D9D9D9] to-transparent pointer-events-none" />
 
@@ -121,7 +148,6 @@ const TestimonialsGSAP = () => {
               key={index}
               className="testimonial-card relative bg-[#27170e] text-white border-[2px] border-[#27170e]/10 rounded-3xl p-4 sm:p-6 shadow-md w-[200px] sm:w-[260px] md:w-[280px] lg:w-[400px] lg:h-[580px] h-[320px] sm:h-[370px] flex flex-col items-center justify-between flex-shrink-0 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.015] hover:shadow-lg"
             >
-              {/* Soft image backdrop */}
               <div className="absolute inset-0">
                 <img
                   src={testimonial.image}
@@ -134,9 +160,9 @@ const TestimonialsGSAP = () => {
                 <img
                   src={testimonial.image}
                   alt={testimonial.name}
-                  className="rounded-full w-14 h-14 sm:w-20 sm:h-20 object-cover border-[2px] border-white shadow mb-3"
+                  className="rounded-full w-14 h-14 sm:w-20 sm:h-20 object-cover object-top border-[2px] border-white shadow mb-3"
                 />
-                <p className="text-xs sm:text-sm md:text-base lg:text-[20px] font-light text-white leading-none font-[Familjen_Grotesk] italic px-2">“{testimonial.quote}”</p>
+                <p className="text-[12px] sm:text-base md:text-lg lg:text-xl font-light text-white leading-snug font-[Familjen_Grotesk] italic px-2">“{testimonial.quote}”</p>
                 <div className="mt-4">
                   <p className="font-semibold uppercase text-gray-100/80 text-sm sm:text-base">{testimonial.name}</p>
                   <p className="text-gray-200 text-xs sm:text-sm">{testimonial.role}</p>
