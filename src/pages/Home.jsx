@@ -41,8 +41,12 @@ function Home() {
    
        
        <About/> 
+
+
       {/* <Showcase/>  */}
-       {/* <Projects/> */}
+
+
+       <Projects/>
        
        <Process/>
        <Service/>
