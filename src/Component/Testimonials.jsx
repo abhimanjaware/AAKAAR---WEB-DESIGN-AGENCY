@@ -1,33 +1,40 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
+// ✅ Import local images
+import shansirImg from '../assets/images/shansir.png';
+import varunImg from '../assets/images/varunbhbara.png';
+import sparrowteckImg from '../assets/images/sparrowteck.png';
+import radianImg from '../assets/images/rad.jpg';
+import gauravImg from '../assets/images/gauravkor.png';
+
+// ✅ Keep remote image as-is
 const testimonials = [
   {
     quote: 'Their team nailed the design aesthetics. The site feels smooth, responsive, and absolutely stunning.',
     name: 'Firefist Solution',
     role: 'Lead : Shan Shimpi ',
-    image: 'src/assets/images/shansir.png',
+    image: shansirImg,
   },
   {
     quote: 'Elegant and modern. Perfectly aligned with our brand.',
     name: 'Web Designer',
     role: 'Varun Bhabra',
-    image: 'src/assets/images/varunbhbara.png',
+    image: varunImg,
   },
   {
     quote: 'Blending creativity, speed, and elegance into one seamless experience. This is not just a site, it’s a masterpiece.',
     name: 'SparrowTeck Performance',
     role: 'Founder : Abhishek Pardesi',
-    image: 'src/assets/images/sparrowteck.png',
+    image: sparrowteckImg,
   },
   {
     quote: 'Nothing was discussed except initial onboarding. They Understood what i wanted. only first review of the website made it to the final deployment',
     name: 'Radian Media',
     role: 'Brand Architect : Hrushikesh Bhujbal ',
-    image: 'src/assets/images/rad.jpg',
+    image: radianImg,
   },
-
-   {
+  {
     quote: 'Zero revisions needed. Truly premium service!',
     name: 'Digital Supermacy',
     role: 'Sales Lead : Durvesh Patil',
@@ -37,11 +44,10 @@ const testimonials = [
     quote: 'From fonts to animations, everything screams luxury. Aakaar took our brand to another level. Every detail was handled with care and perfection.',
     name: 'Digital Supermacy',
     role: 'CEO : Gaurav Kor',
-    image: 'src/assets/images/gauravkor.png',
+    image: gauravImg,
   },
-
-  
 ];
+
 const TestimonialsGSAP = () => {
   const trackRef = useRef(null);
   const loopRef = useRef(null);

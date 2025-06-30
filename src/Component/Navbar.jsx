@@ -1,6 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { gsap } from "gsap";
-import logo from "../assets/images/logogogogogo.png"
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import logo from "../assets/images/logogogogogo.png";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const Navbar = () => {
   const [isActive, setIsActive] = useState(false);
@@ -10,25 +13,24 @@ const Navbar = () => {
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Menu data for sticky nav
-  const stickyMenuItems = [
-    { name: "HOME", href: "/", cursive: "Home" },
-    { name: "ABOUT", href: "#about", cursive: "About" },
-    { name: "WORK", href: "#work", cursive: "Work" },
-    { name: "SERVICES", href: "#services", cursive: "Services" },
-    { name: "CONTACT", href: "#contact", cursive: "Contact" }
-  ];
+  // Unified menu data for both sticky and overlay nav
+  const menuItems = {
+    sticky: [
+      { name: "HOME", href: "/", cursive: "Home" },
+      { name: "ABOUT", href: "#about", cursive: "About" },
+      { name: "WORK", href: "#work", cursive: "Work" },
+      { name: "SERVICES", href: "#services", cursive: "Services" },
+      { name: "CONTACT", href: "#contact", cursive: "Contact" }
+    ],
+    overlay: [
+      { name: "HOME", href: "/", cursive: "Home" },
+      { name: "ABOUT", href: "#about", cursive: "About" },
+      { name: "WORK", href: "#work", cursive: "Work" },
+      { name: "SERVICES", href: "#services", cursive: "Services" },
+      { name: "CONTACT", href: "#contact", cursive: "Contact" }
+    ]
+  };
 
-  // Menu data for overlay content
-  const overlayMenuItems = [
-    { name: "HOME", href: "/", cursive: "Home" },
-    { name: "ABOUT", href: "#about", cursive: "About" },
-    { name: "WORK", href: "#work", cursive: "Work" },
-    { name: "SERVICES", href: "#services", cursive: "Services" },
-    { name: "CONTACT", href: "#contact", cursive: "Contact" }
-  ];
-
-  // Social links
   const socialLinks = [
     { name: "logo-instagram", href: "#", hoverColor: "pink-500", fromColor: "pink-400", viaColor: "pink-300", toColor: "violet-400" },
     { name: "logo-linkedin", href: "#", hoverColor: "blue-600", fromColor: "blue-300", viaColor: "blue-700", toColor: "blue-600" },
@@ -59,7 +61,6 @@ const Navbar = () => {
     gsap.set(".nav-socials", { opacity: 0 });
     gsap.set([".page-transition", ".page-transition-1", ".page-transition-2"], { y: "100%" });
     
-    // Set initial scroll direction after a brief delay to prevent flash
     setTimeout(() => {
       setScrollDirection("up");
       setIsInitialized(true);
@@ -96,6 +97,7 @@ const Navbar = () => {
         top: `-${scrollY}px`,
         width: '100%'
       });
+      
     } else {
       const scrollY = body.style.position === 'fixed' 
         ? parseInt(body.style.top || '0', 10) * -1 
@@ -123,7 +125,6 @@ const Navbar = () => {
     };
   }, [isActive, scrollbarWidth]);
 
-  // Optimized toggle menu function
   const toggleMenu = useCallback(() => {
     if (isTransitioning) return;
     
@@ -159,8 +160,7 @@ const Navbar = () => {
     });
   }, [isTransitioning]);
 
-  // Unified navigation handler for both sticky and overlay nav links
-  const handleNavLinkClick = useCallback((e, targetPath, isOverlayLink = false) => {
+  const handleNavigation = useCallback((e, targetPath, isOverlayLink = false) => {
     e.preventDefault();
     if (isTransitioning) return;
     
@@ -170,7 +170,6 @@ const Navbar = () => {
       onComplete: () => {
         setTimeout(() => {
           setIsTransitioning(false);
-          // Only close the menu if we're clicking an overlay link
           if (isOverlayLink) {
             setIsActive(false);
           }
@@ -238,13 +237,12 @@ const Navbar = () => {
     }
   }, [isActive, isTransitioning]);
 
-  // Reusable nav link component
   const NavLink = ({ item, className = "", textSize = "", isOverlay = false }) => (
     <div className="menu-list relative overflow-hidden cursor-pointer">
       <a 
         href={item.href} 
         className={`button leading-none relative flex flex-row-reverse items-end justify-start overflow-hidden transition-all ease-in duration-300 group ${className}`}
-        onClick={(e) => handleNavLinkClick(e, item.href, isOverlay)}
+        onClick={(e) => handleNavigation(e, item.href, isOverlay)}
       >
         <div className="flex flex-col justify-center items-center relative w-full overflow-hidden">
           <span className={`block font-bold leading-none font-[Familjen_Grotesk] transition-all ease-in duration-300 text-white text-center group-hover:translate-y-[-80%] group-focus:translate-y-[-100%] capitalize tracking-tight group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap ${textSize}`}>
@@ -270,7 +268,7 @@ const Navbar = () => {
         <div className="absolute inset-0 bg-yellow-500/0 z-[-1] mix-blend-difference pointer-events-none"></div>
 
         <div className="logo text-white text-xl leading-none font-medium">
-          <a href="/" onClick={(e) => handleNavLinkClick(e, "/")}>
+          <a href="/" onClick={(e) => handleNavigation(e, "/")}>
             <img
               className="w-[16vw] md:w-[9vw] lg:w-[4.5vw] brightness-200 saturate-200 contrast-0 inline-block"
               src={logo}
@@ -284,7 +282,7 @@ const Navbar = () => {
             !isInitialized || scrollDirection === 'down' ? 'opacity-0 translate-y-[-20px]' : 'opacity-100 translate-y-0'
           }`}>
             <ul className="flex gap-7">
-              {stickyMenuItems.map((item, index) => (
+              {menuItems.sticky.map((item, index) => (
                 <li key={index}>
                   <NavLink item={item} />
                 </li>
@@ -322,7 +320,7 @@ const Navbar = () => {
           <div className="relative w-full flex top-0 flex-col md:flex-row items-end justify-around md:items-center md:gap-10 lg:gap-20 xl:gap-96 p-8 md:p-16 lg:p-32 h-full overflow-hidden">
             <div className="md:flex-row md:gap-2.5 flex flex-col justify-end">
               <div className="main-menu-lists w-full flex flex-col items-end md:w-[70%] lg:w-[90%] md:pr-10 lg:pr-40 md:border-r-[1px] border-zinc-500">
-                {overlayMenuItems.map((item, index) => (
+                {menuItems.overlay.map((item, index) => (
                   <NavLink 
                     key={index}
                     item={item} 

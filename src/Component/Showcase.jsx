@@ -25,7 +25,7 @@ function Showcase() {
       description: "Sparrowteck Performance is a high-performance eCommerce brand for custom bike sprockets. We built a seamless shopping experience with smooth animations and an engineering-first aesthetic—capturing the speed, strength, and spirit of the ride.",
       hashtags: "#ecommerce  #content curation #art direction #copywriting #web design ",
       reverse: false,
-      url: "https://sparrow-teck-perfromance-p5p3lxfeb-abhiman-jawares-projects.vercel.app/",
+      url: "https://sparrow-teck-perfromance.vercel.app/",
     },
     {
       id: "Radian",

@@ -26,7 +26,6 @@ export default function Hero() {
   }, [checkMobile]);
 
   useGSAP(() => {
-    // Entry Reveal Animation for All Devices
     gsap.set([imageRef.current, ctaRef.current], {
       opacity: 0,
       clearProps: "transform"
@@ -55,10 +54,8 @@ export default function Hero() {
       ease: "back.out(1.7)"
     }, "-=0.8");
 
-    // Skip further animation if mobile
     if (isMobile) return;
 
-    // Scroll animation for desktop
     gsap.fromTo(frameRef.current, {
       scale: 0.4,
       y: -600
@@ -74,7 +71,6 @@ export default function Hero() {
       }
     });
 
-    // Breathing + Mouse Parallax for Desktop
     const breathingTween = gsap.to(imageRef.current, {
       scale: 1.02,
       duration: 8,
@@ -177,24 +173,26 @@ export default function Hero() {
     <div ref={heroRef} className="relative w-full">
       <div ref={containerRef} className="hero bg-[#100905] h-screen w-full overflow-hidden">
         <div className="relative h-screen w-full">
-          {/* Background Image */}
+          {/* Background Image using PNG with fallback ready */}
           <div
             ref={imageRef}
             className="absolute inset-0 h-[110%] w-[110%] -left-[5%] -top-[5%] z-0"
             style={{ perspective: '1000px' }}
           >
-            <img
-              className="h-full w-full object-cover hidden lg:block object-center"
-              src={deskim}
-              alt="Hero background"
-              style={{ filter: 'drop-shadow(10px 10px #555)' }}
-            />
-            <img
-              className="h-full w-full object-cover lg:hidden object-center"
-              src={mobim}
-              alt="Hero background"
-              style={{ filter: 'drop-shadow(10px 10px #555)' }}
-            />
+            <picture>
+              {/* If you ever add .webp, it will automatically load faster */}
+              <source srcSet={deskim} type="image/png" media="(min-width: 1024px)" />
+              <source srcSet={mobim} type="image/png" />
+              <img
+                src={isMobile ? mobim : deskim}
+                alt="Hero background"
+                className="h-full w-full object-cover object-center"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
+                style={{ filter: 'drop-shadow(10px 10px #555)' }}
+              />
+            </picture>
           </div>
 
           {/* CTA Button */}
