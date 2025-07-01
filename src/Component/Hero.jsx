@@ -202,7 +202,7 @@ export default function Hero() {
               className="nav-Button bg-gradient-to-r from-[#161D27] to-[#243040] border border-[#161D27]/30 hover:scale-[0.99] px-3 sm:px-4 md:px-5 py-1 rounded-full flex items-center justify-center gap-2 sm:gap-3 md:gap-4 font-[Quicksand] transition-all ease-cubic-bezier duration-500 group hover:bg-gradient-to-r hover:from-[#D9D9D9] hover:to-[#D9D9D9] focus-within:scale-[0.99] shadow-md hover:shadow-lg"
             >
               <a
-                href="https://sales.radianmedia.org"
+                href="https://wa.me/919689762896"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="relative h-10 sm:h-12 md:h-14 flex items-center justify-center"
