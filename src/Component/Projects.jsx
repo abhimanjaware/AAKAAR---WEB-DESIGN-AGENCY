@@ -159,7 +159,7 @@ function Projects() {
               </h2>
               <h5
                 id='opening-top-head'
-                className='absolute left-1/2 -translate-x-1/2 translate-y-1/2 bottom-0 leading-0 text-[13vw] text-center text-[#27170e] font-[Familjen_Grotesk] font-black'
+                className='absolute left-[60%] -translate-x-1/2 translate-y-1/2 bottom-0 leading-0 text-[13vw] text-center text-[#27170e] font-[Familjen_Grotesk] font-black'
               >
                 HIGHLIGHTS
               </h5>
@@ -188,7 +188,7 @@ function Projects() {
             <div id="opening-bottom" className='h-1/2 absolute bottom-0 left-0 w-full z-20 bg-[#D9D9D9] overflow-hidden'>
               <h5
                 id='opening-bottom-head'
-                className='absolute left-1/2 -translate-x-1/2 -translate-y-1/2 leading-0 text-[13vw] text-[#27170e] font-[Familjen_Grotesk] font-black'
+                className='absolute left-[60%] -translate-x-1/2 -translate-y-1/2 leading-0 text-[13vw] text-[#27170e] font-[Familjen_Grotesk] font-black'
               >
                 HIGHLIGHTS
               </h5>
