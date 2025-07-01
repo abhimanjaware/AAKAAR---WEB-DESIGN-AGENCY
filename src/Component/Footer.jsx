@@ -256,6 +256,7 @@ function Footer() {
 
               <a
                 href="https://wa.me/919689762896"
+                target='_blank'
                 ref={buttonRef}
                 className="group relative flex items-center justify-center p-32 md:p-24 sm:p-20 w-[5vw] h-[5vw] md:w-[40vw] md:h-[40vw] lg:w-[17vw] lg:h-[17vw] bg-[#D9D9D9] rounded-full text-[#1e110a] font-bold text-xl overflow-hidden transform will-change-transform"
               >
