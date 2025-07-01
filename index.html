@@ -9,23 +9,57 @@
     <title>AAKAAR – Web Design Agency in Nashik, India | Creative, Clean & Animated Websites</title>
     <meta
       name="description"
-      content="AAKAAR is a premium web design agency based in Nashik, founded by Abhiman Jaware. We craft animated, aesthetic websites with clean code and persuasive branding."
+      content="AAKAAR is a premium web design agency based in Nashik, founded by Abhiman Jaware. We build animated, aesthetic websites with clean code and powerful branding."
     />
-    <meta name="keywords" content="web design agency, Nashik, aakaar, Abhiman Jaware, animated websites, UI/UX design, custom websites, India, frontend development" />
+    <meta name="keywords" content="web design agency, Nashik, aakaar, Abhiman Jaware, animated websites, UI/UX design, branding, frontend development, India" />
     <meta name="author" content="Abhiman Jaware | Founder of AAKAAR" />
+    <meta name="robots" content="index, follow" />
 
     <!-- Open Graph for social sharing -->
     <meta property="og:title" content="AAKAAR – Web Design Agency in India" />
-    <meta property="og:description" content="Founded by Abhiman Jaware, AAKAAR designs animated websites that elevate your brand through clean code and classy aesthetics." />
+    <meta property="og:description" content="Founded by Abhiman Jaware. AAKAAR designs custom animated websites and clean branding that elevates your online presence." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://aakaar.digital" />
     <meta property="og:image" content="https://aakaar.digital/assets/og-banner.jpg" />
+    <meta property="og:site_name" content="AAKAAR" />
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AAKAAR – Web Design Agency in India" />
-    <meta name="twitter:description" content="Founded by Abhiman Jaware. We build animated websites and powerful branding for businesses that want to stand out." />
-    <meta name="twitter:image" content="https://aakaar.digital/assets/og-banner.jpg" />
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AAKAAR",
+      "alternateName": "AAKAAR Web Design Agency",
+      "url": "https://aakaar.digital",
+      "logo": "https://aakaar.digital/assets/logo.png",
+      "founder": {
+        "@type": "Person",
+        "name": "Abhiman Jaware",
+        "sameAs": [
+          "https://www.linkedin.com/in/aakaar-web-design-agency-7405b0324/",
+          "https://www.instagram.com/aakaar.29/?utm_source=ig_web_button_share_sheet",
+          "https://wa.me/919689762896"
+        ]
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "hello@aakaar.digital",
+        "contactType": "Customer Support",
+        "availableLanguage": ["English", "Hindi"]
+      },
+      "sameAs": [
+        "https://www.linkedin.com/in/aakaar-web-design-agency-7405b0324/",
+        "https://www.instagram.com/aakaar.29/?utm_source=ig_web_button_share_sheet",
+        "https://wa.me/919689762896"
+      ],
+      "description": "AAKAAR is a creative web design agency based in Nashik, India. We build animated, aesthetic websites with clean code and persuasive branding for modern businesses.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Nashik",
+        "addressCountry": "India"
+      }
+    }
+    </script>
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/favicon2.png" />
@@ -43,8 +77,10 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
   </head>
 
-  <body>
+  <body class="bg-black text-white font-sans">
     <div id="root"></div>
+
+    <!-- Main React App -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
