@@ -31,12 +31,43 @@ const Navbar = () => {
     ]
   };
 
-  const socialLinks = [
-    { name: "logo-instagram", href: "#", hoverColor: "pink-500", fromColor: "pink-400", viaColor: "pink-300", toColor: "violet-400" },
-    { name: "logo-linkedin", href: "#", hoverColor: "blue-600", fromColor: "blue-300", viaColor: "blue-700", toColor: "blue-600" },
-    { name: "logo-whatsapp", href: "#", hoverColor: "green-600", fromColor: "green-300", viaColor: "green-700", toColor: "green-800" },
-    { name: "mail-outline", href: "mailto:hey@aakaar.digital", hoverColor: "yellow-500", fromColor: "yellow-300", viaColor: "yellow-700", toColor: "yellow-800" }
-  ];
+const socialLinks = [
+  {
+    name: "logo-instagram",
+    href: "https://www.instagram.com/aakaar.29/?utm_source=ig_web_button_share_sheet", // replace with your actual Instagram username
+    hoverColor: "pink-500",
+    fromColor: "pink-400",
+    viaColor: "pink-300",
+    toColor: "violet-400"
+  },
+  {
+    name: "logo-linkedin",
+    href: "https://www.linkedin.com/in/aakaar-web-design-agency-7405b0324/", // replace with your actual LinkedIn page
+    hoverColor: "blue-600",
+    fromColor: "blue-300",
+    viaColor: "blue-700",
+    toColor: "blue-600"
+  },
+  {
+    name: "logo-whatsapp",
+    href: "https://wa.me/919689762896", // replace with your WhatsApp number in international format
+    hoverColor: "green-600",
+    fromColor: "green-300",
+    viaColor: "green-700",
+    toColor: "green-800"
+  },
+  {
+    name: "mail-outline",
+    href: "mailto:hey@aakaar.digital",
+    hoverColor: "yellow-500",
+    fromColor: "yellow-300",
+    viaColor: "yellow-700",
+    toColor: "yellow-800"
+  }
+];
+
+
+  
 
   // Calculate scrollbar width and initialize GSAP
   useEffect(() => {
@@ -119,7 +150,7 @@ const Navbar = () => {
         overflow: '',
         position: '',
         top: '',
-        paddingRight: '',
+        paddingRight:'',
         width: ''
       });
     };
@@ -355,7 +386,7 @@ const Navbar = () => {
                   
                   <div className="cta-btn w-full pt-2 flex justify-end lg:justify-center">
                     <div className="nav-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-5 py-1 relative rounded-full flex items-center justify-center gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
-                      <a href="https://sales.radianmedia.org" target="_blank" rel="noopener noreferrer" className="relative h-[3.5rem] flex items-center justify-center">
+                      <a href="https://wa.me/919689762896" target="_blank" rel="noopener noreferrer" className="relative h-[3.5rem] flex items-center justify-center">
                         <div className="flex flex-col justify-center items-center relative">
                           <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[4vw] transition-all ease-in duration-300 text-[#27170e] text-center tracking-tighter group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
                             Let's Connect
@@ -363,6 +394,8 @@ const Navbar = () => {
                           <span className="absolute font-bold leading-none font-[Familjen_Grotesk] text-[4vw] transition-all ease-in duration-300 group-active:text-[#27170e] text-[#D9D9D9] text-center tracking-tighter opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
                             Let's Connect
                           </span>
+
+
                         </div>
                       </a>
                       <div className='p-3 rounded-full group-hover:-rotate-45 scale-[0.4] transition-all ease-in group-hover:duration-300 group-hover:scale-100 text-[#27170e] group-active:bg-[#27170e] group-active:text-[#D9D9D9] bg-[#27170e] group-hover:text-[#27170e] group-hover:bg-[#D9D9D9]'>

@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useMemo } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-
 gsap.registerPlugin(useGSAP);
+
 
 function Loader() {
   const [shouldShowLoader, setShouldShowLoader] = useState(false);
   const [startOutAnimation, setStartOutAnimation] = useState(false);
   const [percentage, setPercentage] = useState(0);
   const [beamColor, setBeamColor] = useState("black");
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0
+  });
+
   
   // Check if loader should show (only once per session)
   useEffect(() => {
@@ -21,63 +26,49 @@ function Loader() {
     }
   }, []);
 
-  // Memoized strip positions to avoid recreation on every render
-  const stripPositions = useMemo(() => [
-    "top-1/2", "bottom-1/3", "top-1/3", "bottom-1/6", "top-1/6", 
-    "top-full", "", "-bottom-1/6", "-top-1/6", "-bottom-1/3", 
-    "-top-1/3", "-bottom-1/2", "-top-1/2", "-bottom-2/3", "-top-2/3", 
-    "-bottom-5/6", "-top-5/6", "-bottom-full", "-top-full"
-  ], []);
-
-  // Memoized LoadingTextDisplay component to prevent unnecessary re-renders
-  const LoadingTextDisplay = useMemo(() => React.memo(({ isInverted = false }) => {
-    const containerClass = isInverted ? "loader-movingtext-invert" : "loader-movingtext";
-    
-    return (
-      <div className={containerClass}>
-        {Array.from({ length: 15 }, (_, i) => ( // Reduced number of elements for performance
-          <span key={i} className="text-black/85 text-[15px] font-black px-2 tracking-wide">
-            LOADING
-          </span>
-        ))}
-      </div>
-    );
-  }), []);
-
-  // Effect for setting up viewport height and scroll locking
+  // Window resize handler with debounce
   useEffect(() => {
     if (!shouldShowLoader) return;
 
-    // Preload the font
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+      
+      // Update vh variable
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    const debounce = (func, delay) => {
+      let timeout;
+      return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), delay);
+      };
+    };
+
+    
+    const debouncedResize = debounce(handleResize, 100);
+    window.addEventListener('resize', debouncedResize);
+    handleResize(); // Initial call
+
+    return () => window.removeEventListener('resize', debouncedResize);
+  }, [shouldShowLoader]);
+
+  // Viewport height and scroll locking
+  useEffect(() => {
+    if (!shouldShowLoader) return;
+
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Notable&display=swap';
     link.rel = 'stylesheet';
     link.crossOrigin = 'anonymous';
     document.head.appendChild(link);
-    
-    // Set viewport height variable
-    const setVH = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    };
-    
-    setVH();
-    
-    // Throttled resize handler
-    const handleResize = () => {
-      let resizeTimeout;
-      if (!resizeTimeout) {
-        resizeTimeout = setTimeout(() => {
-          resizeTimeout = null;
-          setVH();
-        }, 100);
-      }
-    };
-    
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-    
-    // Lock scroll
+
     const scrollY = window.scrollY;
     const originalStyles = {
       bodyOverflow: document.body.style.overflow,
@@ -100,10 +91,6 @@ function Loader() {
     
     return () => {
       link.remove();
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-      
-      // Restore original styles
       Object.assign(document.body.style, {
         overflow: originalStyles.bodyOverflow,
         position: originalStyles.bodyPosition,
@@ -111,19 +98,18 @@ function Loader() {
         width: originalStyles.bodyWidth,
         height: originalStyles.bodyHeight
       });
-      
       document.documentElement.style.overflow = originalStyles.htmlOverflow;
       window.scrollTo(0, scrollY);
     };
   }, [shouldShowLoader]);
   
-  // Percentage counter effect
+  // Percentage counter
   useEffect(() => {
     if (!shouldShowLoader) return;
 
     let animationId;
     let startTime = null;
-    const totalDuration = 4000; // 4 seconds for counting
+    const totalDuration = 4000;
     
     const updateCounter = (timestamp) => {
       if (!startTime) startTime = timestamp;
@@ -146,21 +132,42 @@ function Loader() {
     animationId = requestAnimationFrame(updateCounter);
     return () => cancelAnimationFrame(animationId);
   }, [shouldShowLoader]);
-  
-  // Main GSAP animation
+
+  // Strip positions
+  const stripPositions = useMemo(() => [
+    "top-1/2", "bottom-1/3", "top-1/3", "bottom-1/6", "top-1/6", 
+    "top-full", "", "-bottom-1/6", "-top-1/6", "-bottom-1/3", 
+    "-top-1/3", "-bottom-1/2", "-top-1/2", "-bottom-2/3", "-top-2/3", 
+    "-bottom-5/6", "-top-5/6", "-bottom-full", "-top-full"
+  ], []);
+
+  // Loading text component
+  const LoadingTextDisplay = useMemo(() => React.memo(({ isInverted = false }) => {
+    const containerClass = isInverted ? "loader-movingtext-invert" : "loader-movingtext";
+    
+    return (
+      <div className={containerClass}>
+        {Array.from({ length: 15 }, (_, i) => (
+          <span key={i} className="text-black/85 text-[15px] font-black px-2 tracking-wide">
+            LOADING
+          </span>
+        ))}
+      </div>
+    );
+  }), []);
+
+  // GSAP animations
   useGSAP(() => {
     if (!shouldShowLoader) return;
 
-    // Optimize animations for mobile by reducing transforms and forces
     gsap.config({
-      force3D: false, // Disable force3D for better mobile performance
+      force3D: false,
       autoSleep: 60,
       nullTargetWarn: false
     });
 
     const tl = gsap.timeline();
     
-    // Initial strips animation
     tl.fromTo([".strip1", ".strip2"], {
       width: 0,
     }, {
@@ -169,7 +176,6 @@ function Loader() {
       ease: "expo.in",
     });
 
-    // Web strips animations
     const stripAnimations = [
       { selector: '.web-horizontal', width: "2900px" },
       { selector: '.web-vertical', width: "100vh" },
@@ -185,7 +191,6 @@ function Loader() {
       }, 'z');
     });
     
-    // Movement animations
     const movementAnimations = [
       { selector: ".web-horizontal-1", from: { x: "-100%" }, to: { x: "0%" } },
       { selector: ".web-horizontal-2", from: { x: "100%" }, to: { x: "0%" } },
@@ -205,7 +210,6 @@ function Loader() {
       }, "x");
     });
  
-    // Beam circle animation
     tl.fromTo(".beam-circle", {
       scale: 0,
       opacity: 0
@@ -216,7 +220,6 @@ function Loader() {
       ease: "power2.out"
     }, "-=0.5");
 
-    // Text animations - optimized for mobile by reducing the number of elements
     const textAnimations = [
       { selector: ".loader-movingtext", x: "-100%", duration: 90 },
       { selector: ".loader-movingtext-invert", x: "100%", duration: 90 },
@@ -236,7 +239,6 @@ function Loader() {
     });
   }, [shouldShowLoader]);
 
-  // Beam color change animation
   useGSAP(() => {
     if (beamColor === "white" && shouldShowLoader) {
       const tl = gsap.timeline();
@@ -255,7 +257,6 @@ function Loader() {
     }
   }, [beamColor, shouldShowLoader]);
 
-  // Out animation
   useGSAP(() => {
     if (startOutAnimation && shouldShowLoader) {
       const outTl = gsap.timeline({
@@ -314,21 +315,35 @@ function Loader() {
         height: 'calc(var(--vh, 1vh) * 100)',
         touchAction: 'none',
         overscrollBehavior: 'none',
-        willChange: 'transform, opacity' // Hint to browser for optimization
+        willChange: 'transform, opacity'
       }}
     >
-      <div className="loader-content h-full w-full bg-black overflow-hidden">
-        <div className="loader-allStrips relative h-full flex justify-center">
+      <div className="loader-content h-full w-full bg-black overflow-hidden relative">
+        <div className="loader-allStrips h-full w-full">
+          {/* Enhanced Centered Beam Circle */}
           <div 
-            className="beam-circle absolute w-44 h-44 bg-black rounded-full z-50 flex items-center justify-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-            style={{ willChange: 'transform, background-color' }} // Optimization hint
+            className="beam-circle absolute bg-black rounded-full z-50 flex items-center justify-center"
+            style={{
+              width: Math.min(windowSize.width, windowSize.height) * 0.3,
+              height: Math.min(windowSize.width, windowSize.height) * 0.3,
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              minWidth: '100px',
+              minHeight: '100px',
+              maxWidth: '200px',
+              maxHeight: '200px',
+              willChange: 'transform, background-color'
+            }}
           >
             <div 
-              className="counter-number text-zinc-500 font-bold text-4xl md:text-5xl"
+              className="counter-number text-zinc-500 font-bold"
               style={{
                 fontFamily: "'Notable', sans-serif",
                 letterSpacing: '1px',
-                willChange: 'opacity' // Optimization hint
+                willChange: 'opacity',
+                fontSize: `${Math.min(windowSize.width, windowSize.height) * 0.08}px`,
+                lineHeight: 1
               }}
             >
               {percentage}%
@@ -343,7 +358,7 @@ function Loader() {
                   style={{ willChange: 'width, opacity' }}
                 >
                   <div className="strip-text-animation whitespace-nowrap absolute w-[200%] left-0">
-                    {Array.from({ length: 25 }, (_, i) => ( // Reduced number of elements
+                    {Array.from({ length: 25 }, (_, i) => (
                       <span key={i} className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block">
                         LOADING
                       </span>
@@ -356,7 +371,7 @@ function Loader() {
                   style={{ willChange: 'width, opacity' }}
                 >
                   <div className="strip-text-animation-reverse whitespace-nowrap absolute w-[200%] left-0">
-                    {Array.from({ length: 25 }, (_, i) => ( // Reduced number of elements
+                    {Array.from({ length: 25 }, (_, i) => (
                       <span key={i} className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block">
                         LOADING
                       </span>
