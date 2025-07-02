@@ -74,7 +74,7 @@ const TestimonialsGSAP = () => {
 
     const loopAnim = gsap.to(container, {
       x: `-=${totalWidth / (cloneCount + 1)}`,
-      duration: 90,
+      duration: 70,
       ease: 'none',
       repeat: -1,
       modifiers: {

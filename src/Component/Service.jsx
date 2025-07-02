@@ -348,7 +348,7 @@ function Service() {
                     </span>
                     <div className="service-btn block lg:hidden">
                       <div className="service-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-4 py-0 relative rounded-full flex items-center justify-center gap-0 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
-                        <a href="https://sales.radianmedia.org" target="_blank" className="relative h-[.5rem] flex items-center justify-center">
+                        <a href="https://wa.me/919689762896" target="_blank" className="relative h-[.5rem] flex items-center justify-center">
                           <div className="flex flex-col justify-center items-center relative">
                             <span className="block font-bold leading-none font-[Familjen_Grotesk] transition-all ease-in duration-300 text-[#27170e] text-center tracking-tighter group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap text-[18px]">
                               Book Now

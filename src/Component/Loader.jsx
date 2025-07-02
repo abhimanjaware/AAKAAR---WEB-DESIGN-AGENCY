@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 gsap.registerPlugin(useGSAP);
-
 
 function Loader() {
   const [shouldShowLoader, setShouldShowLoader] = useState(false);
@@ -14,55 +13,67 @@ function Loader() {
     height: typeof window !== 'undefined' ? window.innerHeight : 0
   });
 
-  
+  // Detect mobile device
+  const isMobile = useMemo(() => {
+    return typeof window !== 'undefined' && (
+      window.innerWidth <= 768 || 
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    );
+  }, []);
+
   // Check if loader should show (only once per session)
   useEffect(() => {
-    const hasShownLoader = window.sessionStorage?.getItem('loaderShown');
+    // Use regular storage check without try-catch since we're not in artifact restrictions
+    const hasShownLoader = sessionStorage?.getItem('loaderShown');
     if (!hasShownLoader) {
       setShouldShowLoader(true);
-      if (window.sessionStorage) {
-        window.sessionStorage.setItem('loaderShown', 'true');
-      }
+      sessionStorage?.setItem('loaderShown', 'true');
     }
   }, []);
 
-  // Window resize handler with debounce
+  // Optimized resize handler with RAF throttling
+  const handleResize = useCallback(() => {
+    const newSize = {
+      width: window.innerWidth,
+      height: window.innerHeight
+    };
+    setWindowSize(newSize);
+    
+    // Update vh variable
+    const vh = newSize.height * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  }, []);
+
   useEffect(() => {
     if (!shouldShowLoader) return;
 
-    const handleResize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-      
-      // Update vh variable
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    let rafId;
+    let isScheduled = false;
+
+    const throttledResize = () => {
+      if (!isScheduled) {
+        rafId = requestAnimationFrame(() => {
+          handleResize();
+          isScheduled = false;
+        });
+        isScheduled = true;
+      }
     };
 
-    const debounce = (func, delay) => {
-      let timeout;
-      return function() {
-        const context = this;
-        const args = arguments;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(context, args), delay);
-      };
-    };
-
-    
-    const debouncedResize = debounce(handleResize, 100);
-    window.addEventListener('resize', debouncedResize);
+    window.addEventListener('resize', throttledResize, { passive: true });
     handleResize(); // Initial call
 
-    return () => window.removeEventListener('resize', debouncedResize);
-  }, [shouldShowLoader]);
+    return () => {
+      window.removeEventListener('resize', throttledResize);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [shouldShowLoader, handleResize]);
 
-  // Viewport height and scroll locking
+  // Optimized body scroll lock
   useEffect(() => {
     if (!shouldShowLoader) return;
 
+    // Load font more efficiently
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Notable&display=swap';
     link.rel = 'stylesheet';
@@ -70,40 +81,42 @@ function Loader() {
     document.head.appendChild(link);
 
     const scrollY = window.scrollY;
+    const body = document.body;
+    const html = document.documentElement;
+    
+    // Store original styles
     const originalStyles = {
-      bodyOverflow: document.body.style.overflow,
-      bodyPosition: document.body.style.position,
-      bodyTop: document.body.style.top,
-      bodyWidth: document.body.style.width,
-      bodyHeight: document.body.style.height,
-      htmlOverflow: document.documentElement.style.overflow
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyWidth: body.style.width,
+      bodyHeight: body.style.height,
+      htmlOverflow: html.style.overflow
     };
     
-    Object.assign(document.body.style, {
-      overflow: 'hidden',
-      position: 'fixed',
-      top: `-${scrollY}px`,
-      width: '100%',
-      height: '100%'
-    });
-    
-    document.documentElement.style.overflow = 'hidden';
+    // More efficient style application
+    const bodyStyle = body.style;
+    bodyStyle.overflow = 'hidden';
+    bodyStyle.position = 'fixed';
+    bodyStyle.top = `-${scrollY}px`;
+    bodyStyle.width = '100%';
+    bodyStyle.height = '100%';
+    html.style.overflow = 'hidden';
     
     return () => {
       link.remove();
-      Object.assign(document.body.style, {
-        overflow: originalStyles.bodyOverflow,
-        position: originalStyles.bodyPosition,
-        top: originalStyles.bodyTop,
-        width: originalStyles.bodyWidth,
-        height: originalStyles.bodyHeight
-      });
-      document.documentElement.style.overflow = originalStyles.htmlOverflow;
+      // Restore original styles
+      bodyStyle.overflow = originalStyles.bodyOverflow;
+      bodyStyle.position = originalStyles.bodyPosition;
+      bodyStyle.top = originalStyles.bodyTop;
+      bodyStyle.width = originalStyles.bodyWidth;
+      bodyStyle.height = originalStyles.bodyHeight;
+      html.style.overflow = originalStyles.htmlOverflow;
       window.scrollTo(0, scrollY);
     };
   }, [shouldShowLoader]);
   
-  // Percentage counter
+  // Optimized percentage counter with RAF
   useEffect(() => {
     if (!shouldShowLoader) return;
 
@@ -130,57 +143,67 @@ function Loader() {
     };
     
     animationId = requestAnimationFrame(updateCounter);
-    return () => cancelAnimationFrame(animationId);
+    return () => {
+      if (animationId) cancelAnimationFrame(animationId);
+    };
   }, [shouldShowLoader]);
 
-  // Strip positions
-  const stripPositions = useMemo(() => [
-    "top-1/2", "bottom-1/3", "top-1/3", "bottom-1/6", "top-1/6", 
-    "top-full", "", "-bottom-1/6", "-top-1/6", "-bottom-1/3", 
-    "-top-1/3", "-bottom-1/2", "-top-1/2", "-bottom-2/3", "-top-2/3", 
-    "-bottom-5/6", "-top-5/6", "-bottom-full", "-top-full"
-  ], []);
+  // Optimized strip positions - reduced for mobile
+  const stripPositions = useMemo(() => {
+    const positions = [
+      "top-1/2", "bottom-1/3", "top-1/3", "bottom-1/6", "top-1/6", 
+      "top-full", "", "-bottom-1/6", "-top-1/6", "-bottom-1/3", 
+      "-top-1/3", "-bottom-1/2", "-top-1/2", "-bottom-2/3", "-top-2/3", 
+      "-bottom-5/6", "-top-5/6", "-bottom-full", "-top-full"
+    ];
+    // Reduce strips on mobile for better performance
+    return isMobile ? positions.slice(0, 12) : positions;
+  }, [isMobile]);
 
-  // Loading text component
+  // Optimized loading text component
   const LoadingTextDisplay = useMemo(() => React.memo(({ isInverted = false }) => {
     const containerClass = isInverted ? "loader-movingtext-invert" : "loader-movingtext";
+    const textCount = isMobile ? 8 : 15; // Reduce text elements on mobile
     
     return (
       <div className={containerClass}>
-        {Array.from({ length: 15 }, (_, i) => (
+        {Array.from({ length: textCount }, (_, i) => (
           <span key={i} className="text-black/85 text-[15px] font-black px-2 tracking-wide">
             LOADING
           </span>
         ))}
       </div>
     );
-  }), []);
+  }), [isMobile]);
 
-  // GSAP animations
+  // Main GSAP animations with mobile optimizations
   useGSAP(() => {
     if (!shouldShowLoader) return;
 
+    // Optimize GSAP config for mobile
     gsap.config({
-      force3D: false,
+      force3D: true, // Enable hardware acceleration
       autoSleep: 60,
       nullTargetWarn: false
     });
 
     const tl = gsap.timeline();
     
+    // Initial strip animations
     tl.fromTo([".strip1", ".strip2"], {
       width: 0,
     }, {
-      width: "2900px",
+      width: isMobile ? "200vw" : "2900px", // Responsive width
       duration: 1,
       ease: "expo.in",
     });
 
+    // Optimized strip animations with responsive sizes
     const stripAnimations = [
-      { selector: '.web-horizontal', width: "2900px" },
+      { selector: '.web-horizontal', width: isMobile ? "200vw" : "2900px" },
       { selector: '.web-vertical', width: "100vh" },
-      { selector: '.web-slantright', width: "2500px" },
-      { selector: '.web-slantleft', width: "2500px" }
+      { selector: '.web-slantright', width: isMobile ? "150vw" : "2500px" },
+      { selector: '.web-slantleft', width: isMobile ? "150vw" : "2500px" }
     ];
     
     stripAnimations.forEach(({ selector, width }) => {
@@ -191,6 +214,7 @@ function Loader() {
       }, 'z');
     });
     
+    // Movement animations
     const movementAnimations = [
       { selector: ".web-horizontal-1", from: { x: "-100%" }, to: { x: "0%" } },
       { selector: ".web-horizontal-2", from: { x: "100%" }, to: { x: "0%" } },
@@ -210,6 +234,7 @@ function Loader() {
       }, "x");
     });
  
+    // Beam circle animation
     tl.fromTo(".beam-circle", {
       scale: 0,
       opacity: 0
@@ -220,11 +245,12 @@ function Loader() {
       ease: "power2.out"
     }, "-=0.5");
 
+    // Optimized text animations with different speeds for mobile
     const textAnimations = [
-      { selector: ".loader-movingtext", x: "-100%", duration: 90 },
-      { selector: ".loader-movingtext-invert", x: "100%", duration: 90 },
-      { selector: ".strip-text-animation", x: "-100%", duration: 40 },
-      { selector: ".strip-text-animation-reverse", x: "100%", duration: 40 }
+      { selector: ".loader-movingtext", x: "-100%", duration: isMobile ? 60 : 90 },
+      { selector: ".loader-movingtext-invert", x: "100%", duration: isMobile ? 60 : 90 },
+      { selector: ".strip-text-animation", x: "-100%", duration: isMobile ? 30 : 40 },
+      { selector: ".strip-text-animation-reverse", x: "100%", duration: isMobile ? 30 : 40 }
     ];
     
     textAnimations.forEach(({ selector, x, duration }) => {
@@ -237,8 +263,9 @@ function Loader() {
         immediateRender: true
       });
     });
-  }, [shouldShowLoader]);
+  }, [shouldShowLoader, isMobile]);
 
+  // Beam color change animation
   useGSAP(() => {
     if (beamColor === "white" && shouldShowLoader) {
       const tl = gsap.timeline();
@@ -257,6 +284,7 @@ function Loader() {
     }
   }, [beamColor, shouldShowLoader]);
 
+  // Exit animation
   useGSAP(() => {
     if (startOutAnimation && shouldShowLoader) {
       const outTl = gsap.timeline({
@@ -287,7 +315,7 @@ function Loader() {
         ease: "power1.in"
       })
       .to(".beam-circle", {
-        scale: 50,
+        scale: isMobile ? 30 : 50, // Smaller scale on mobile
         duration: 0.4,
         ease: "power4.in"
       })
@@ -302,7 +330,21 @@ function Loader() {
         ease: "power2.inOut"
       });
     }
-  }, [startOutAnimation, shouldShowLoader]);
+  }, [startOutAnimation, shouldShowLoader, isMobile]);
+
+  // Calculate responsive sizes
+  const beamSize = useMemo(() => {
+    const baseSize = Math.min(windowSize.width, windowSize.height) * (isMobile ? 0.25 : 0.3);
+    return {
+      width: Math.max(80, Math.min(baseSize, isMobile ? 150 : 200)),
+      height: Math.max(80, Math.min(baseSize, isMobile ? 150 : 200))
+    };
+  }, [windowSize, isMobile]);
+
+  const fontSize = useMemo(() => {
+    const baseSize = Math.min(windowSize.width, windowSize.height) * (isMobile ? 0.06 : 0.08);
+    return Math.max(16, Math.min(baseSize, isMobile ? 24 : 32));
+  }, [windowSize, isMobile]);
 
   if (!shouldShowLoader) {
     return null;
@@ -324,15 +366,11 @@ function Loader() {
           <div 
             className="beam-circle absolute bg-black rounded-full z-50 flex items-center justify-center"
             style={{
-              width: Math.min(windowSize.width, windowSize.height) * 0.3,
-              height: Math.min(windowSize.width, windowSize.height) * 0.3,
+              width: beamSize.width,
+              height: beamSize.height,
               left: '50%',
               top: '50%',
               transform: 'translate(-50%, -50%)',
-              minWidth: '100px',
-              minHeight: '100px',
-              maxWidth: '200px',
-              maxHeight: '200px',
               willChange: 'transform, background-color'
             }}
           >
@@ -342,7 +380,7 @@ function Loader() {
                 fontFamily: "'Notable', sans-serif",
                 letterSpacing: '1px',
                 willChange: 'opacity',
-                fontSize: `${Math.min(windowSize.width, windowSize.height) * 0.08}px`,
+                fontSize: `${fontSize}px`,
                 lineHeight: 1
               }}
             >
@@ -354,11 +392,11 @@ function Loader() {
             {stripPositions.map((position, index) => (
               <React.Fragment key={index}>
                 <div 
-                  className={`strip1 h-4 w-[2900px] bg-[#070304] absolute ${position} rotate-45 overflow-hidden`}
+                  className={`strip1 h-4 w-[200vw] bg-[#070304] absolute ${position} rotate-45 overflow-hidden`}
                   style={{ willChange: 'width, opacity' }}
                 >
                   <div className="strip-text-animation whitespace-nowrap absolute w-[200%] left-0">
-                    {Array.from({ length: 25 }, (_, i) => (
+                    {Array.from({ length: isMobile ? 15 : 25 }, (_, i) => (
                       <span key={i} className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block">
                         LOADING
                       </span>
@@ -367,11 +405,11 @@ function Loader() {
                 </div>
                 
                 <div 
-                  className={`strip2 h-4 w-[2900px] bg-[#070304] absolute ${position} -rotate-45 overflow-hidden`}
+                  className={`strip2 h-4 w-[200vw] bg-[#070304] absolute ${position} -rotate-45 overflow-hidden`}
                   style={{ willChange: 'width, opacity' }}
                 >
                   <div className="strip-text-animation-reverse whitespace-nowrap absolute w-[200%] left-0">
-                    {Array.from({ length: 25 }, (_, i) => (
+                    {Array.from({ length: isMobile ? 15 : 25 }, (_, i) => (
                       <span key={i} className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block">
                         LOADING
                       </span>
@@ -396,8 +434,11 @@ function Loader() {
             </div>
 
             <div 
-              className="web-horizontal h-5 w-[2000px] flex absolute top-1/2 overflow-hidden"
-              style={{ willChange: 'width, opacity' }}
+              className="web-horizontal h-5 flex absolute top-1/2 overflow-hidden"
+              style={{ 
+                width: isMobile ? '200vw' : '2000px',
+                willChange: 'width, opacity' 
+              }}
             >
               <div className="web-horizontal-1 h-full w-full bg-gradient-to-r from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-start overflow-hidden">
                 <LoadingTextDisplay />
@@ -415,8 +456,11 @@ function Loader() {
             ].map(({ rotation, class: className }, index) => (
               <div 
                 key={index} 
-                className={`${className} h-5 w-[100vw] flex absolute top-1/2 ${rotation}`}
-                style={{ willChange: 'width, opacity' }}
+                className={`${className} h-5 flex absolute top-1/2 ${rotation}`}
+                style={{ 
+                  width: isMobile ? '150vw' : '100vw',
+                  willChange: 'width, opacity' 
+                }}
               >
                 <div className={`${className}-1 h-full w-full bg-gradient-to-r from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden`}>
                   <LoadingTextDisplay />

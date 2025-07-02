@@ -449,7 +449,7 @@ function About() {
                   <div className="abhiman-connect-tablet cta-btn py-2 flex justify-start">
                     <div className="nav-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-4 py-[2px] relative rounded-full flex items-center justify-center gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
                       <a
-                        href="https://sales.radianmedia.org"
+                        href="https://wa.me/919689762896"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="relative h-[3.2rem] flex items-center justify-center"
@@ -532,7 +532,7 @@ function About() {
                   <div className="abhiman-connect cta-btn flex justify-start">
                     <div className="nav-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-3 sm:px-4 py-[2px] relative rounded-full flex items-center justify-center gap-3 sm:gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
                       <a 
-                        href="https://sales.radianmedia.org" 
+                        href="https://wa.me/919689762896" 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="relative h-[2.5rem] sm:h-[3rem] md:h-[3.2rem] lg:h-[3.5rem] flex items-center justify-center"

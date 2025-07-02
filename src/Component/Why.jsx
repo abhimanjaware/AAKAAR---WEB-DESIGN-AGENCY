@@ -173,7 +173,7 @@ function Why() {
                     </h5>
                     <div>
                       {descriptions[i].map((para, idx) => (
-                        <p key={idx} className='font-[Familjen_Grotesk] text-zinc-300 text-[22px] md:text-2xl lg:text-[1.5rem] pb-4 leading-snug'>
+                        <p key={idx} className='font-[Familjen_Grotesk] text-zinc-300 text-[19px] md:text-xl lg:text-[1.3rem] pb-4 leading-snug'>
                           {para}
                         </p>
                       ))}
