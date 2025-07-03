@@ -32,7 +32,7 @@ return (
   
   <div className="counter-number absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] flex items-center justify-center">
 <img className="counter-logo z-10 h-[150px] w-[150px]" src="src\assets\ChatGPT Image Apr 2, 2025, 04_25_00 PM.png" alt="" />
-{/* <span className="  text-[60px] font-[Notable]  font-black text-zinc-800 drop-shadow-lg    rounded-full ">{count}%</span> */}
+<span className="  text-[75px] font-[Notable]  font-black text-zinc-800 drop-shadow-lg    rounded-full ">{count}%</span>
 </div>  
 ); 
 }                  

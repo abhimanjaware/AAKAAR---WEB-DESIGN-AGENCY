@@ -5,7 +5,7 @@ function Button() {
     <div className='h-screen w-full flex items-center bg-yellow-200 justify-center'>
       <div className="">
         <div className="button bg-[#D9D9D9] leading-none border-[1px] border-black px-4 py-2 relative rounded-full flex items-center justify-center gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
-          <a href="https://sales.radianmedia.org" target="_blank" className="relative h-[3.5rem] flex items-center justify-center">
+          <a href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!" target="_blank" className="relative h-[3.5rem] flex items-center justify-center">
             <div className="flex flex-col justify-center items-center relative">
               {/* First Text: Initially visible, moves up and becomes hidden on hover or focus */}
               <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[3.3vw] transition-all ease-in duration-300 text-[#27170e] text-center tracking-tighter group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1.3vw]">

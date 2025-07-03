@@ -255,7 +255,7 @@ function Footer() {
               ></span>
 
               <a
-                href="https://wa.me/919689762896"
+                href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!"
                 target='_blank'
                 ref={buttonRef}
                 className="group relative flex items-center justify-center p-32 md:p-24 sm:p-20 w-[5vw] h-[5vw] md:w-[40vw] md:h-[40vw] lg:w-[17vw] lg:h-[17vw] bg-[#D9D9D9] rounded-full text-[#1e110a] font-bold text-xl overflow-hidden transform will-change-transform"

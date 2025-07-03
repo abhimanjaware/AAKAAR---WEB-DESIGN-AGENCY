@@ -348,7 +348,7 @@ function Service() {
                     </span>
                     <div className="service-btn block lg:hidden">
                       <div className="service-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-4 py-0 relative rounded-full flex items-center justify-center gap-0 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
-                        <a href="https://wa.me/919689762896" target="_blank" className="relative h-[.5rem] flex items-center justify-center">
+                        <a href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!" target="_blank" className="relative h-[.5rem] flex items-center justify-center">
                           <div className="flex flex-col justify-center items-center relative">
                             <span className="block font-bold leading-none font-[Familjen_Grotesk] transition-all ease-in duration-300 text-[#27170e] text-center tracking-tighter group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap text-[18px]">
                               Book Now
@@ -377,7 +377,7 @@ function Service() {
 
                     <div className="cta-btn relative z-10">
                       <div className="nav-Button group bg-[#D9D9D9] text-[#27170e] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-4 py-0 relative rounded-full flex items-center justify-center gap-3 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group focus-within:scale-95">
-                        <a href="https://wa.me/919689762896" target="_blank" className="relative h-[3rem] flex items-center justify-center">
+                        <a href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!" target="_blank" className="relative h-[3rem] flex items-center justify-center">
                           <div className="flex flex-col justify-center items-center relative">
                             <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[3vw] transition-all ease-in duration-300 text-center tracking-tighter opacity-100 group-focus:opacity-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
                               Let's Connect
@@ -400,7 +400,7 @@ function Service() {
         <div className="flex items-center justify-start gap-2 md:gap-6">
           <div className="cta-btn mt-4">
             <div className="nav-Button bg-[#fff] w-fit leading-none hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-3 py-1 md:px-4 lg:py-1 relative rounded-full flex items-center justify-center gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
-              <a href="https://wa.me/919689762896" target="_blank" className="relative h-[3.5rem] flex items-center justify-center">
+              <a href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!" target="_blank" className="relative h-[3.5rem] flex items-center justify-center">
                 <div className="flex flex-col justify-center items-center relative">
                   <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[3.5vw] transition-all ease-in duration-300 text-[#27170e] text-center tracking-normal group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
                     GET QUOTE
