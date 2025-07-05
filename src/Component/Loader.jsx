@@ -110,7 +110,7 @@ function Loader() {
 
     let animationId;
     let startTime = null;
-    const totalDuration = isMobile ? 2500 : 3500; // Faster on mobile
+    const totalDuration = isMobile ? 2000 : 3500; // Faster on mobile
     
     const updateCounter = (timestamp) => {
       if (!startTime) startTime = timestamp;
@@ -144,13 +144,13 @@ function Loader() {
       "-top-1/3", "-bottom-1/2", "-top-1/2", "-bottom-2/3", "-top-2/3", 
       "-bottom-5/6", "-top-5/6", "-bottom-full", "-top-full"
     ];
-    return isMobile ? positions.slice(0, 10) : positions;
+    return isMobile ? positions.slice(0, 6) : positions; // Further reduced for mobile
   }, [isMobile]);
 
-  // Memoized loading text component with reduced elements on mobile
+  // Simplified loading text component for mobile
   const LoadingTextDisplay = useMemo(() => React.memo(({ isInverted = false }) => {
     const containerClass = isInverted ? "loader-movingtext-invert" : "loader-movingtext";
-    const textCount = isMobile ? 8 : 15;
+    const textCount = isMobile ? 4 : 15; // Reduced text elements on mobile
     
     return (
       <div className={containerClass}>
@@ -173,49 +173,59 @@ function Loader() {
 
     // Optimize GSAP for performance
     gsap.config({
-      force3D: true,
+      force3D: !isMobile, // Disable force3D on mobile
       autoSleep: 60,
       nullTargetWarn: false,
       autoKill: true
     });
 
-    // Use will-change for critical elements
+    // Simplified will-change for mobile
     gsap.set([".strip1", ".strip2", ".web-horizontal", ".web-vertical", ".web-slantright", ".web-slantleft"], {
       willChange: isMobile ? 'opacity' : 'transform, opacity'
     });
 
     const tl = gsap.timeline({
-      defaults: { ease: "power2.out" }
+      defaults: { 
+        ease: isMobile ? "none" : "power2.out" // Simpler easing on mobile
+      }
     });
     
-    // Initial strip animations
+    // Initial strip animations - simplified for mobile
     tl.fromTo([".strip1", ".strip2"], {
       width: 0,
     }, {
-      width: isMobile ? "180vw" : "2900px",
-      duration: 0.8,
-      ease: "power2.inOut",
+      width: isMobile ? "150vw" : "2900px",
+      duration: isMobile ? 0.5 : 0.8,
+      ease: isMobile ? "none" : "power2.inOut",
     });
 
-    // Main strip animations
-    const stripAnimations = [
-      { selector: '.web-horizontal', width: isMobile ? "180vw" : "2900px" },
+    // Main strip animations - reduced complexity for mobile
+    const stripAnimations = isMobile ? [
+      { selector: '.web-horizontal', width: "150vw" },
+      { selector: '.web-vertical', width: "100vh" }
+    ] : [
+      { selector: '.web-horizontal', width: "2900px" },
       { selector: '.web-vertical', width: "100vh" },
-      { selector: '.web-slantright', width: isMobile ? "140vw" : "2500px" },
-      { selector: '.web-slantleft', width: isMobile ? "140vw" : "2500px" }
+      { selector: '.web-slantright', width: "2500px" },
+      { selector: '.web-slantleft', width: "2500px" }
     ];
     
     stripAnimations.forEach(({ selector, width }) => {
       tl.fromTo(selector, { width: 0 }, { 
         width, 
-        duration: 0.8,
-        ease: 'power2.inOut', 
-        stagger: 0.03 
+        duration: isMobile ? 0.5 : 0.8,
+        ease: isMobile ? "none" : 'power2.inOut',
+        stagger: isMobile ? 0 : 0.03 
       }, 'z');
     });
     
-    // Movement animations
-    const movementAnimations = [
+    // Simplified movement animations for mobile
+    const movementAnimations = isMobile ? [
+      { selector: ".web-horizontal-1", from: { x: "-100%" }, to: { x: "0%" } },
+      { selector: ".web-horizontal-2", from: { x: "100%" }, to: { x: "0%" } },
+      { selector: ".web-vertical-1", from: { x: "-100%" }, to: { x: "0%" } },
+      { selector: ".web-vertical-2", from: { x: "100%" }, to: { x: "0%" } }
+    ] : [
       { selector: ".web-horizontal-1", from: { x: "-100%" }, to: { x: "0%" } },
       { selector: ".web-horizontal-2", from: { x: "100%" }, to: { x: "0%" } },
       { selector: ".web-vertical-1", from: { x: "-100%" }, to: { x: "0%" } },
@@ -229,23 +239,23 @@ function Loader() {
     movementAnimations.forEach(({ selector, from, to }) => {
       tl.fromTo(selector, from, { 
         ...to, 
-        duration: 0.8, 
-        ease: "power2.out" 
+        duration: isMobile ? 0.5 : 0.8, 
+        ease: isMobile ? "none" : "power2.out" 
       }, "x");
     });
  
-    // Beam circle animation
+    // Beam circle animation - simplified for mobile
     tl.fromTo(".beam-circle", {
       scale: 0,
       opacity: 0
     }, {
       scale: 1,
       opacity: 1,
-      duration: 0.6,
-      ease: "back.out(1.7)"
+      duration: isMobile ? 0.4 : 0.6,
+      ease: isMobile ? "none" : "back.out(1.7)"
     }, "-=0.5");
 
-    // Text animations (only if not mobile)
+    // Text animations (disabled on mobile)
     if (!isMobile) {
       const textAnimations = [
         { selector: ".loader-movingtext", x: "-100%", duration: 90 },
@@ -266,24 +276,24 @@ function Loader() {
     }
   }, [shouldShowLoader, isMobile]);
 
-  // Beam color change animation
+  // Beam color change animation - simplified for mobile
   useGSAP(() => {
     if (beamColor === "white" && shouldShowLoader) {
       gsap.to(".beam-circle", {
         backgroundColor: "#ffffff",
-        boxShadow: "0 0 20px rgba(255, 255, 255, 0.8)",
-        duration: 0.8,
-        ease: "power2.inOut"
+        boxShadow: isMobile ? "none" : "0 0 20px rgba(255, 255, 255, 0.8)",
+        duration: isMobile ? 0.5 : 0.8,
+        ease: isMobile ? "none" : "power2.inOut"
       });
       
       gsap.to(".counter-number", {
         opacity: 0,
-        duration: 0.5,
-        ease: "power2.out",
+        duration: 0.3,
+        ease: "none",
         delay: 0.3
       });
     }
-  }, [beamColor, shouldShowLoader]);
+  }, [beamColor, shouldShowLoader, isMobile]);
 
   // Exit animation with mobile optimizations
   useGSAP(() => {
@@ -294,7 +304,11 @@ function Loader() {
         }
       });
       
-      const outAnimations = [
+      const outAnimations = isMobile ? [
+        { selector: ".web-horizontal", props: { width: 0, opacity: 0 } },
+        { selector: ".web-vertical", props: { height: 0, opacity: 0 } },
+        { selector: ".strip1, .strip2", props: { width: 0, opacity: 0 } }
+      ] : [
         { selector: ".web-horizontal", props: { width: 0, opacity: 0 } },
         { selector: ".web-vertical", props: { height: 0, opacity: 0 } },
         { selector: ".web-slantright, .web-slantleft", props: { width: 0, opacity: 0 } },
@@ -304,31 +318,31 @@ function Loader() {
       outAnimations.forEach(({ selector, props }) => {
         outTl.to(selector, {
           ...props,
-          duration: 1,
-          ease: "power3.in",
-          stagger: 0.03
+          duration: isMobile ? 0.6 : 1,
+          ease: isMobile ? "none" : "power3.in",
+          stagger: isMobile ? 0 : 0.03
         }, 0);
       });
       
       outTl.to(".beam-circle", {
-        scale: 1.2,
-        duration: 0.2,
-        ease: "power1.in"
+        scale: 1.1,
+        duration: 0.1,
+        ease: "none"
       })
       .to(".beam-circle", {
-        scale: isMobile ? 25 : 50,
-        duration: 0.5,
-        ease: "power2.in"
+        scale: isMobile ? 15 : 50,
+        duration: isMobile ? 0.3 : 0.5,
+        ease: isMobile ? "none" : "power2.in"
       })
       .to(".loader-content", {
         backgroundColor: "#ffffff",
-        duration: 0.4,
-        ease: "power2.in"
-      }, "-=0.4")
+        duration: 0.3,
+        ease: "none"
+      }, "-=0.3")
       .to(".main-loader", {
         opacity: 0,
-        duration: 0.5,
-        ease: "power2.inOut"
+        duration: 0.3,
+        ease: "none"
       });
     }
   }, [startOutAnimation, shouldShowLoader, isMobile]);
@@ -337,14 +351,14 @@ function Loader() {
   const beamSize = useMemo(() => {
     const baseSize = Math.min(windowSize.width, windowSize.height) * 0.3;
     return {
-      width: Math.max(80, Math.min(baseSize, isMobile ? 140 : 200)),
-      height: Math.max(80, Math.min(baseSize, isMobile ? 140 : 200))
+      width: Math.max(60, Math.min(baseSize, isMobile ? 100 : 200)),
+      height: Math.max(60, Math.min(baseSize, isMobile ? 100 : 200))
     };
   }, [windowSize, isMobile]);
 
   const fontSize = useMemo(() => {
     const baseSize = Math.min(windowSize.width, windowSize.height) * 0.07;
-    return Math.max(18, Math.min(baseSize, isMobile ? 22 : 32));
+    return Math.max(16, Math.min(baseSize, isMobile ? 20 : 32));
   }, [windowSize, isMobile]);
 
   if (!shouldShowLoader) {
@@ -373,7 +387,7 @@ function Loader() {
               left: '50%',
               top: '50%',
               transform: 'translate(-50%, -50%)',
-              willChange: 'transform, background-color',
+              willChange: isMobile ? 'opacity, background-color' : 'transform, background-color',
               transformStyle: 'preserve-3d'
             }}
           >
@@ -396,9 +410,9 @@ function Loader() {
             {stripPositions.map((position, index) => (
               <React.Fragment key={index}>
                 <div 
-                  className={`strip1 h-4 w-[180vw] bg-[#070304] absolute ${position} rotate-45 overflow-hidden`}
+                  className={`strip1 h-4 w-[150vw] bg-[#070304] absolute ${position} rotate-45 overflow-hidden`}
                   style={{ 
-                    willChange: isMobile ? 'opacity' : 'width, opacity',
+                    willChange: 'opacity',
                     transform: 'translateZ(0)'
                   }}
                 >
@@ -418,9 +432,9 @@ function Loader() {
                 </div>
                 
                 <div 
-                  className={`strip2 h-4 w-[180vw] bg-[#070304] absolute ${position} -rotate-45 overflow-hidden`}
+                  className={`strip2 h-4 w-[150vw] bg-[#070304] absolute ${position} -rotate-45 overflow-hidden`}
                   style={{ 
-                    willChange: isMobile ? 'opacity' : 'width, opacity',
+                    willChange: 'opacity',
                     transform: 'translateZ(0)'
                   }}
                 >
@@ -446,7 +460,7 @@ function Loader() {
             <div 
               className="web-vertical h-5 w-[100vh] flex absolute rotate-90 overflow-hidden top-1/2 left-1/2 -translate-x-1/2"
               style={{ 
-                willChange: isMobile ? 'opacity' : 'width, height, opacity',
+                willChange: 'opacity',
                 transform: 'translateZ(0)'
               }}
             >
@@ -461,8 +475,8 @@ function Loader() {
             <div 
               className="web-horizontal h-5 flex absolute top-1/2 overflow-hidden"
               style={{ 
-                width: isMobile ? '180vw' : '2000px',
-                willChange: isMobile ? 'opacity' : 'width, opacity',
+                width: isMobile ? '150vw' : '2000px',
+                willChange: 'opacity',
                 transform: 'translateZ(0)'
               }}
             >
@@ -474,7 +488,7 @@ function Loader() {
               </div>
             </div>
 
-            {[
+            {!isMobile && [
               { rotation: '-rotate-[55deg]', class: 'web-slantright' },
               { rotation: 'rotate-[55deg]', class: 'web-slantleft' },
               { rotation: '-rotate-[26deg]', class: 'web-slantright' },
@@ -484,8 +498,8 @@ function Loader() {
                 key={index} 
                 className={`${className} h-5 flex absolute top-1/2 ${rotation}`}
                 style={{ 
-                  width: isMobile ? '140vw' : '100vw',
-                  willChange: isMobile ? 'opacity' : 'width, opacity',
+                  width: '100vw',
+                  willChange: 'opacity',
                   transform: 'translateZ(0)'
                 }}
               >
