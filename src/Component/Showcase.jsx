@@ -16,7 +16,6 @@ function Showcase() {
   const projectRefs = useRef([]);
   const animationContextRef = useRef(null);
   const [gridSettings, setGridSettings] = useState({ gap: 170, count: 28, cellSize: 170 });
-  const [isMobile, setIsMobile] = useState(false);
 
   const projects = useMemo(() => [
     {
@@ -79,19 +78,6 @@ function Showcase() {
     },
   ], []);
 
-  // Mobile detection with useEffect
-  useEffect(() => {
-    const checkMobile = () => {
-      const isMobileDevice = window.innerWidth <= 768 || 
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      setIsMobile(isMobileDevice);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
   const calculateGridSettings = useCallback(() => {
     const width = window.innerWidth;
     if (width < 640) return { gap: 80, count: 20, cellSize: 80 };
@@ -125,16 +111,6 @@ function Showcase() {
   const createScrollAnimations = useCallback(() => {
     if (animationContextRef.current) {
       animationContextRef.current.revert();
-    }
-
-    // Skip complex animations on mobile
-    if (isMobile) {
-      // Just set elements to visible state
-      gsap.set([...document.querySelectorAll('[class*="-Face"], [class*="-Info"]')], {
-        y: 0,
-        opacity: 1
-      });
-      return;
     }
 
     const ctx = gsap.context(() => {
@@ -182,14 +158,13 @@ function Showcase() {
           onEnter: animateIn,
           onEnterBack: animateIn,
           onLeave: animateOut,
-          onLeaveBack: animateOut,
-          markers: false
+          onLeaveBack: animateOut
         });
       });
     }, showcaseRef);
 
     animationContextRef.current = ctx;
-  }, [projects, isMobile]);
+  }, [projects]);
 
   // Debounced resize handler
   useEffect(() => {
@@ -200,9 +175,7 @@ function Showcase() {
         const newSettings = calculateGridSettings();
         setGridSettings(newSettings);
         alignProjectsToGrid(newSettings);
-        if (!isMobile) {
-          ScrollTrigger.refresh();
-        }
+        ScrollTrigger.refresh();
       }, 150);
     };
 
@@ -211,7 +184,7 @@ function Showcase() {
       clearTimeout(timeoutId);
       window.removeEventListener("resize", handleResize);
     };
-  }, [calculateGridSettings, alignProjectsToGrid, isMobile]);
+  }, [calculateGridSettings, alignProjectsToGrid]);
 
   // Initialize grid and animations
   useEffect(() => {
@@ -244,60 +217,31 @@ function Showcase() {
   );
 
   return (
-    <div 
-      ref={showcaseRef} 
-      className="bg-[#1e110a] overflow-hidden py-32 w-full relative" 
-      id="showcase-section"
-      style={{
-        // Force hardware acceleration
-        transform: 'translateZ(0)',
-        backfaceVisibility: 'hidden',
-        perspective: '1000px'
-      }}
-    >
+    <div ref={showcaseRef} className="bg-[#1e110a] overflow-hidden py-32 w-full relative" id="showcase-section">
       <div className="px-1 sm:px-6 md:px-16 lg:px-24 flex flex-col gap-24 md:gap-32 lg:gap-36 pt-32 justify-start items-start lg:justify-center lg:items-center w-full relative z-10">
         {projects.map((project, index) => (
           <div
             key={project.id}
             ref={(el) => (projectRefs.current[index] = el)}
             className={`${project.id}-Showcase ${project.reverse ? "lg:flex-row-reverse" : "lg:flex-row"} flex flex-col items-start lg:items-center gap-6 md:gap-10 lg:gap-24 xl:gap-36 w-full max-w-[110%] ${project.reverse ? "lg:ml-auto" : "mx-auto"} mb-12 lg:mb-0`}
-            style={{
-              willChange: 'transform, opacity',
-              transform: 'translateZ(0)'
-            }}
           >
-            <div 
-              className={`${project.id}-Face w-full lg:w-1/2 rounded-2xl overflow-hidden relative`}
-              style={{
-                willChange: 'transform',
-                transform: 'translateZ(0)'
-              }}
-            >
+            <div className={`${project.id}-Face w-full lg:w-1/2 rounded-2xl overflow-hidden relative`}>
               <video
                 className="w-full h-auto lg:h-[90vh] object-cover object-center rounded-2xl transition-transform duration-500 hover:scale-105"
                 autoPlay
                 loop
                 muted
                 playsInline
-                preload={isMobile ? "none" : "metadata"}
+                preload="metadata"
                 loading="lazy"
-                disablePictureInPicture
               >
                 <source src={project.video} type="video/mp4" />
               </video>
             </div>
-            <div 
-              className={`${project.id}-Info w-full lg:w-1/2 relative flex items-start lg:items-center`}
-              style={{
-                willChange: 'transform, opacity',
-                transform: 'translateZ(0)'
-              }}
-            >
-              {!isMobile && (
-                <div className={`stick absolute h-[25vw] ${project.reverse ? "right-[-12px] lg:right-[-24px]" : "left-[-12px]"} hidden lg:block`}>
-                  <img src={stick} alt="Sticker" className="h-full w-full" loading="lazy" />
-                </div>
-              )}
+            <div className={`${project.id}-Info w-full lg:w-1/2 relative flex items-start lg:items-center`}>
+              <div className={`stick absolute h-[25vw] ${project.reverse ? "right-[-12px] lg:right-[-24px]" : "left-[-12px]"} hidden lg:block`}>
+                <img src={stick} alt="Sticker" className="h-full w-full" />
+              </div>
               <div className={`pl-0 sm:pl-4 md:pl-8 ${project.reverse ? "lg:pr-16 lg:pl-0" : "lg:pl-16"} text-[#D9D9D9]`}>
                 <h3 
                   className={`${project.id}-Title font-black text-white font-[Familjen_Grotesk] capitalize whitespace-nowrap tracking-wide text-left`} 
