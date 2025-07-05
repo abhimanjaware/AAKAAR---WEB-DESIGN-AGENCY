@@ -12,7 +12,6 @@ function Service() {
   const subheadingRef = useRef(null);
   const cardsWrapperRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
 
   // Service cards data with unique images
   const services = [
@@ -60,234 +59,69 @@ function Service() {
     }
   ];
 
-  // Check if device is desktop
-  useEffect(() => {
-    const checkDesktop = () => {
-      setIsDesktop(window.innerWidth >= 1024); // lg breakpoint
-    };
-    
-    checkDesktop();
-    window.addEventListener('resize', checkDesktop);
-    
-    return () => window.removeEventListener('resize', checkDesktop);
-  }, []);
-
   // Initialize cardRefs
   useEffect(() => {
     cardRefs.current = Array(services.length).fill(null);
+    setIsLoaded(true);
   }, [services.length]);
 
-  // Setup animations after all components are mounted and images are loaded
-  useEffect(() => {
-    if (isDesktop) {
-      // Desktop: Full image preloading
-      const imagePromises = services.map(service => {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.loading = 'eager';
-          img.src = service.image;
-          
-          const timeout = setTimeout(() => resolve(), 100);
-          
-          img.onload = () => {
-            clearTimeout(timeout);
-            resolve();
-          };
-          img.onerror = () => {
-            clearTimeout(timeout);
-            resolve();
-          };
-        });
-      });
-
-      Promise.race([
-        Promise.all(imagePromises),
-        new Promise(resolve => setTimeout(resolve, 200))
-      ]).then(() => {
-        setIsLoaded(true);
-      });
-    } else {
-      // Mobile: Skip image preloading, set loaded immediately
-      setIsLoaded(true);
-    }
-  }, [services, isDesktop]);
-
-  // Set up animations after everything is loaded
+  // Simple fade-in and stagger animation
   useEffect(() => {
     if (!isLoaded) return;
 
-    let floatingTimeline;
-    let scrollTriggerInstances = [];
     let masterTimeline;
-    let hoverEventListeners = [];
+    let scrollTriggerInstances = [];
 
-    if (isDesktop) {
-      // DESKTOP ANIMATIONS - Full GSAP animations
-      
-      // Hide all elements initially
-      gsap.set([headingRef.current, subheadingRef.current], {
-        opacity: 0,
-        y: 50
-      });
+    // Hide all elements initially
+    gsap.set([headingRef.current, subheadingRef.current], {
+      opacity: 0,
+      y: 30
+    });
 
-      gsap.set(cardRefs.current, {
-        opacity: 0,
-        y: 50
-      });
+    gsap.set(cardRefs.current, {
+      opacity: 0,
+      y: 30
+    });
 
-      // Create master timeline for reveal animations
-      masterTimeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: cardsContainerRef.current,
-          start: "top 70%",
-          toggleActions: "play none none none",
-        }
-      });
-      
-      scrollTriggerInstances.push(masterTimeline.scrollTrigger);
+    // Create master timeline for reveal animations
+    masterTimeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: cardsContainerRef.current,
+        start: "top 70%",
+        toggleActions: "play none none none",
+      }
+    });
+    
+    scrollTriggerInstances.push(masterTimeline.scrollTrigger);
 
-      // Heading animations
-      masterTimeline.to(headingRef.current, {
+    // Heading animations
+    masterTimeline.to(headingRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      ease: "power2.out"
+    });
+
+    masterTimeline.to(subheadingRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: "power2.out"
+    }, "-=0.3");
+
+    // Cards reveal animation with stagger
+    if (cardRefs.current.every(ref => ref)) {
+      masterTimeline.to(cardRefs.current, {
         opacity: 1,
         y: 0,
+        stagger: 0.15,
         duration: 0.8,
         ease: "power2.out"
-      });
-
-      masterTimeline.to(subheadingRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        ease: "power2.out"
-      }, "-=0.3");
-
-      // Cards reveal animation
-      if (cardRefs.current.every(ref => ref)) {
-        masterTimeline.to(cardRefs.current, {
-          opacity: 1,
-          y: 0,
-          stagger: 0.1,
-          duration: 0.8,
-          ease: "power2.out",
-          onComplete: () => {
-            startFloatingAnimation();
-          }
-        }, "-=0.2");
-      }
-
-      // Desktop floating animation
-      function startFloatingAnimation() {
-        if (floatingTimeline) {
-          floatingTimeline.kill();
-        }
-
-        floatingTimeline = gsap.timeline({
-          repeat: -1,
-          yoyo: true,
-          defaults: {
-            ease: "sine.inOut"
-          }
-        });
-
-        cardRefs.current.forEach((card, index) => {
-          const delay = index * 0.15;
-          
-          floatingTimeline.to(card, {
-            y: "+=15",
-            duration: 2,
-            ease: "sine.inOut"
-          }, delay);
-        });
-
-        floatingTimeline.timeScale(0.6);
-      }
-
-      // Desktop hover effects
-      cardRefs.current.forEach((card) => {
-        const handleMouseEnter = () => {
-          if (floatingTimeline) {
-            floatingTimeline.pause();
-          }
-          
-          gsap.to(cardRefs.current.filter(ref => ref !== card), {
-            filter: 'blur(5px)',
-            scale: 0.95,
-            opacity: 0.7,
-            duration: 0.4,
-            ease: "power2.out",
-            zIndex: 1
-          });
-          
-          gsap.to(card, {
-            scale: 1.05,
-            filter: 'blur(0px)',
-            opacity: 1,
-            duration: 0.4,
-            ease: "power2.out",
-            zIndex: 10
-          });
-        };
-
-        const handleMouseLeave = () => {
-          gsap.to(cardRefs.current, {
-            filter: 'blur(0px)',
-            scale: 1,
-            opacity: 1,
-            duration: 0.4,
-            ease: "power2.out",
-            zIndex: 1,
-            onComplete: () => {
-              if (floatingTimeline) {
-                floatingTimeline.play();
-              }
-            }
-          });
-        };
-
-        card.addEventListener('mouseenter', handleMouseEnter);
-        card.addEventListener('mouseleave', handleMouseLeave);
-        
-        hoverEventListeners.push({
-          element: card,
-          enter: handleMouseEnter,
-          leave: handleMouseLeave
-        });
-      });
-
-    } else {
-      // MOBILE - Minimal animations only
-      
-      // Simple fade-in on scroll for mobile
-      gsap.set([headingRef.current, subheadingRef.current, ...cardRefs.current], {
-        opacity: 0
-      });
-
-      masterTimeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: cardsContainerRef.current,
-          start: "top 80%",
-          toggleActions: "play none none none",
-        }
-      });
-
-      scrollTriggerInstances.push(masterTimeline.scrollTrigger);
-
-      // Simple fade-in for mobile
-      masterTimeline.to([headingRef.current, subheadingRef.current, ...cardRefs.current], {
-        opacity: 1,
-        duration: 0.6,
-        stagger: 0.05,
-        ease: "power1.out"
-      });
+      }, "-=0.2");
     }
 
     // Cleanup function
     return () => {
-      if (floatingTimeline) {
-        floatingTimeline.kill();
-      }
-      
       scrollTriggerInstances.forEach(st => {
         if (st) st.kill();
       });
@@ -299,16 +133,8 @@ function Service() {
       ScrollTrigger.getAll().forEach(st => st.kill());
       gsap.killTweensOf(cardRefs.current);
       gsap.killTweensOf([headingRef.current, subheadingRef.current]);
-      
-      // Clean up event listeners
-      hoverEventListeners.forEach(({ element, enter, leave }) => {
-        if (element) {
-          element.removeEventListener('mouseenter', enter);
-          element.removeEventListener('mouseleave', leave);
-        }
-      });
     };
-  }, [isLoaded, isDesktop]);
+  }, [isLoaded]);
 
   return (
     <>
@@ -321,14 +147,12 @@ function Service() {
           <h3 
             className='service-head text-[2rem] md:text-[3rem] text-[#27170e] pb-2 font-[Roboto_Flex] font-black tracking-wide leading-none overflow-hidden'
             ref={headingRef}
-            style={{ opacity: isDesktop ? 0 : 1 }}
           >
             HERE'S WHAT <br /> WE ARE KNOW FOR
           </h3>
           <span 
             className='service-subhead text-zinc-900/90 font-[Dancing_Script] font-extralight text-[1.4rem] leading-none md:text-[1.8rem] overflow-hidden'
             ref={subheadingRef}
-            style={{ opacity: isDesktop ? 0 : 1 }}
           >
             Converting your brand into flawless aesthetics.
           </span>
@@ -343,40 +167,23 @@ function Service() {
               key={service.id}
               className={`${service.id}-service h-96 w-full sm:w-[calc(100%-2rem)] md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1rem)] rounded-xl justify-center flex flex-wrap group border-[.001px] border-zinc-800/30 overflow-hidden`}
               ref={el => cardRefs.current[index] = el}
-              style={{ 
-                zIndex: 1, 
-                position: 'relative', 
-                transform: 'translate3d(0, 0, 0)',
-                opacity: isDesktop ? 0 : 1,
-                // Mobile optimization: Use transform3d and will-change sparingly
-                ...(isDesktop ? {} : { willChange: 'auto' })
-              }}
             >
               <div className="relative h-full w-full rounded-xl overflow-hidden">
-                {/* Background image - Simplified transitions on mobile */}
-                <div className={`absolute inset-0 bg-gray-300 transition-all opacity-100 ${
-                  isDesktop 
-                    ? 'duration-700 group-hover:scale-[1.2] blur-[1.3px] ease-in-out group-hover:blur-[3.5px]' 
-                    : 'duration-300 blur-[1.3px]'
-                }`}>
+                {/* Background image */}
+                <div className="absolute inset-0 bg-gray-300 transition-all duration-500 opacity-100 group-hover:scale-[1.1] blur-[1.3px] ease-in-out group-hover:blur-[2px]">
                   <div className="h-full w-full bg-stone-700">
                     <img 
                       src={service.image} 
                       alt={`${service.id} Service`} 
                       className="h-full w-full object-cover object-center" 
-                      loading={isDesktop ? "eager" : "lazy"}
+                      loading="lazy"
                       decoding="async"
-                      fetchpriority={isDesktop ? "high" : "auto"}
                     />
                   </div>
                 </div>
                
-                {/* Main content - Simplified mobile transitions */}
-                <div className={`absolute inset-0 transition-all px-8 ease-in-out ${
-                  isDesktop 
-                    ? 'duration-500 transform group-hover:-translate-y-full' 
-                    : 'duration-300'
-                }`}>
+                {/* Main content */}
+                <div className="absolute inset-0 transition-all px-8 ease-in-out duration-500 transform group-hover:-translate-y-full">
                   <div className="h-full w-full flex items-center justify-center flex-col p-6">
                     <p className="font-black text-[2.7rem] leading-none text-center text-zinc-100/90">
                       {service.title}
@@ -406,12 +213,8 @@ function Service() {
                   </div>
                 </div>
                 
-                {/* Secondary content - Only animated on desktop */}
-                <div className={`absolute inset-0 bg-gradient-to-b from-transparent via-black/60 to-black rounded-xl transition-all ease-in-out z-0 ${
-                  isDesktop 
-                    ? 'duration-500 transform translate-y-full group-hover:translate-y-0' 
-                    : 'duration-300 translate-y-full'
-                }`}>
+                {/* Secondary content */}
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/60 to-black rounded-xl transition-all ease-in-out duration-500 transform translate-y-full group-hover:translate-y-0 z-0">
                   <div className="h-full w-full flex flex-col items-center justify-center p-8 text-white">
                     <span className="text-xl text-center font-[Roboto_Flex] py-7 leading-none font-light">
                       {service.hoverContent}
@@ -442,22 +245,27 @@ function Service() {
         <div className="flex items-center justify-start gap-2 md:gap-6">
           <div className="cta-btn mt-4">
             <div className="nav-Button bg-[#fff] w-fit leading-none hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-3 py-1 md:px-4 lg:py-1 relative rounded-full flex items-center justify-center gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
-            <a
-  href="AAKAAR - QUOTATION (2).pdf" // PDF path inside /public
-  target="_blank"
-  rel="noopener noreferrer"
-  className="relative h-[3.5rem] flex items-center justify-center group"
->
-  <div className="flex flex-col justify-center items-center relative">
-    <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[3.5vw] transition-all ease-in duration-300 text-[#27170e] text-center tracking-normal group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
-      GET QUOTE
-    </span>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const newWindow = window.open('AAKAAR - QUOTATION (2).pdf', '_blank');
+                  if (newWindow) {
+                    newWindow.document.title = 'Aakaar Quote Request';
+                  }
+                }}
+                className="relative h-[3.5rem] flex items-center justify-center group"
+              >
+                <div className="flex flex-col justify-center items-center relative">
+                  <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[3.5vw] transition-all ease-in duration-300 text-[#27170e] text-center tracking-normal group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
+                    GET QUOTE
+                  </span>
 
-    <span className="absolute font-bold leading-none font-[Familjen_Grotesk] text-[3.5vw] transition-all ease-in duration-300 group-active:text-[#27170e] text-[#D9D9D9] text-center tracking-normal opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
-      GET QUOTE
-    </span>
-  </div>
-</a>
+                  <span className="absolute font-bold leading-none font-[Familjen_Grotesk] text-[3.5vw] transition-all ease-in duration-300 group-active:text-[#27170e] text-[#D9D9D9] text-center tracking-normal opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
+                    GET QUOTE
+                  </span>
+                </div>
+              </a>
               <div className='p-3 rounded-full group-hover:-rotate-45 scale-[0.4] transition-all ease-in group-hover:duration-300 group-hover:scale-100 text-[#27170e] group-active:bg-[#27170e] group-active:text-[#D9D9D9] bg-[#27170e] group-hover:text-[#27170e] group-hover:bg-[#D9D9D9]'>
                 <ion-icon name="arrow-forward-outline" size="small"></ion-icon>
               </div>
