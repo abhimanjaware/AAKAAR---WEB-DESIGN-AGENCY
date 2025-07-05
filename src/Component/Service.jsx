@@ -65,59 +65,65 @@ function Service() {
     setIsLoaded(true);
   }, [services.length]);
 
-  // Simple fade-in and stagger animation
+  // Faster fade-in and stagger animation
   useEffect(() => {
     if (!isLoaded) return;
 
     let masterTimeline;
     let scrollTriggerInstances = [];
+    
+    // Store current ref values to avoid stale references in cleanup
+    const currentHeadingRef = headingRef.current;
+    const currentSubheadingRef = subheadingRef.current;
+    const currentCardRefs = [...cardRefs.current];
+    const currentCardsContainerRef = cardsContainerRef.current;
 
     // Hide all elements initially
-    gsap.set([headingRef.current, subheadingRef.current], {
+    gsap.set([currentHeadingRef, currentSubheadingRef], {
       opacity: 0,
-      y: 30
+      y: 20
     });
 
-    gsap.set(cardRefs.current, {
+    gsap.set(currentCardRefs, {
       opacity: 0,
-      y: 30
+      y: 20
     });
 
     // Create master timeline for reveal animations
     masterTimeline = gsap.timeline({
       scrollTrigger: {
-        trigger: cardsContainerRef.current,
-        start: "top 70%",
+        trigger: currentCardsContainerRef,
+        start: "top 75%",
         toggleActions: "play none none none",
       }
     });
     
     scrollTriggerInstances.push(masterTimeline.scrollTrigger);
 
-    // Heading animations
-    masterTimeline.to(headingRef.current, {
+    // Faster heading animations
+    masterTimeline.to(currentHeadingRef, {
       opacity: 1,
       y: 0,
-      duration: 0.8,
+      duration: 0.25,
       ease: "power2.out"
     });
 
-    masterTimeline.to(subheadingRef.current, {
+    masterTimeline.to(currentSubheadingRef, {
       opacity: 1,
       y: 0,
-      duration: 0.6,
+      duration: 0.3,
       ease: "power2.out"
-    }, "-=0.3");
+    }, "-=0.15");
 
-    // Cards reveal animation with stagger
-    if (cardRefs.current.every(ref => ref)) {
-      masterTimeline.to(cardRefs.current, {
+    // Faster cards reveal animation with reduced stagger
+    if (currentCardRefs.every(ref => ref)) {
+      masterTimeline.to(currentCardRefs, {
         opacity: 1,
         y: 0,
-        stagger: 0.15,
-        duration: 0.8,
+        stagger: 0.08,
+        duration: 0.4,
         ease: "power2.out"
-      }, "-=0.2");
+      }, "-=0.1");
     }
 
     // Cleanup function
@@ -131,8 +137,8 @@ function Service() {
       }
 
       ScrollTrigger.getAll().forEach(st => st.kill());
-      gsap.killTweensOf(cardRefs.current);
-      gsap.killTweensOf([headingRef.current, subheadingRef.current]);
+      gsap.killTweensOf(currentCardRefs);
+      gsap.killTweensOf([currentHeadingRef, currentSubheadingRef]);
     };
   }, [isLoaded]);
 

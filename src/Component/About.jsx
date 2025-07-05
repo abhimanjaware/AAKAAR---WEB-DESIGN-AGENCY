@@ -10,25 +10,7 @@ function About() {
   const componentRef = useRef(null);
   const animationRefs = useRef([]);
 
-  // Memoized data to prevent recreation on every render
-  const boxesData = useMemo(() => [
-    {
-      position: "w-[30%] h-[90vh] absolute top-[50%] translate-y-[-50%] left-0 sm:w-[40%] md:w-[35%] lg:w-[30%]",
-      imgSrc: "https://i.pinimg.com/736x/32/04/a0/3204a0923c23d27a651420c8407e585d.jpg",
-      isCenter: false,
-    },
-    {
-      position: "w-[30%] h-[90vh] absolute top-[50%] left-[50%] -translate-y-[50%] -translate-x-[50%] z-50 sm:w-[50%] md:w-[45%] lg:w-[35%]",
-      imgSrc: c1,
-      isCenter: true,
-    },
-    {
-      position: "w-[30%] h-[90vh] absolute top-[50%] translate-y-[-50%] right-0 sm:w-[40%] md:w-[35%] lg:w-[30%]",
-      imgSrc: "https://i.pinimg.com/736x/6e/74/34/6e74348f55ed5379f8df0e2e37a4f0d7.jpg",
-      isCenter: false,
-    },
-  ], []);
-
+  // Memoized data for about paragraphs
   const aboutParagraphs = useMemo(() => [
     <span key="p1" className="font-black text-start text-white">
       I'm Abhiman Jaware, The founder of <span className="capitalize"><a href="">aakaar.digital.</a></span>
@@ -66,7 +48,7 @@ function About() {
         trigger: "#about-anime",
         start: "top bottom",
         end: "bottom top",
-        scrub: isMobile ? 1.2 : 1.5, // Smoother scrub on mobile
+        scrub: isMobile ? 1.2 : 1.5,
         markers: false,
       }
     });
@@ -90,13 +72,12 @@ function About() {
     return tl;
   };
 
-  // Original desktop animations (unchanged)
+  // Desktop zoom animation
   const setupZoomAnimation = () => {
     const centerBox = document.querySelector(".center-box");
     const others = document.querySelectorAll(".leftup-img:not(.center-box)");
     const textElements = document.querySelectorAll(".zoom-text");
     const tagline = document.querySelectorAll("#tagline");
-    const agencySection = document.querySelector(".agency-section");
 
     if (!centerBox) return;
 
@@ -142,19 +123,10 @@ function About() {
       zIndex: 100,
     }, 0.35);
 
-    if (agencySection) {
-      tl.to(agencySection, {
-        opacity: 1,
-        y: 0,
-        ease: "power2.out",
-        duration: 1,
-      }, 0.8);
-    }
-
     return tl;
   };
 
-  // Enhanced mobile founder animation
+  // Founder animation for both mobile and desktop
   const setupFounderAnimation = () => {
     const isMobile = window.innerWidth < 768;
     
@@ -181,7 +153,7 @@ function About() {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: ".founder-section",
-          start: "top 85%", // Earlier trigger for mobile
+          start: "top 85%",
           toggleActions: "play none none none",
           markers: false
         }
@@ -204,8 +176,8 @@ function About() {
       .to(mobileElements.paragraphs, {
         opacity: 1,
         y: 0,
-        stagger: 0.06, // Faster stagger on mobile
-        duration: 0.3,
+        stagger: 0.06,
+        duration: 0.4,
         ease: "power2.out"
       }, "-=0.1")
       .to([mobileElements.mail, mobileElements.connect], {
@@ -218,7 +190,7 @@ function About() {
       return tl;
     }
 
-    // Original desktop animations (unchanged)
+    // Desktop animations
     const elements = {
       meetTheLetters: document.querySelectorAll(".meet-the-letter"),
       founderLetters: document.querySelectorAll(".founder-letter"),
@@ -285,14 +257,19 @@ function About() {
     return tl;
   };
 
-  // Setup all animations with mobile detection
+  // Setup all animations
   useEffect(() => {
     const ctx = gsap.context(() => {
       const textTl = setupTextAnimation();
-      const zoomTl = window.innerWidth >= 1024 ? setupZoomAnimation() : null;
       const founderTl = setupFounderAnimation();
 
-      animationRefs.current = [textTl, zoomTl, founderTl];
+      animationRefs.current = [textTl, founderTl];
+      
+      // Only setup zoom animation on desktop
+      if (window.innerWidth >= 1024) {
+        const zoomTl = setupZoomAnimation();
+        animationRefs.current.push(zoomTl);
+      }
     }, componentRef.current);
 
     return () => {
@@ -329,7 +306,49 @@ function About() {
 
       {/* Scroll Section - Desktop Only */}
       <div className="about-wrapper overflow-hidden min-h-[400vh] relative hidden lg:block">
-        {/* ... (rest of the desktop scroll section remains unchanged) ... */}
+        <div className="about-content h-screen w-full relative z-10">
+          {[
+            {
+              position: "w-[30%] h-[90vh] absolute top-[50%] translate-y-[-50%] left-0 sm:w-[40%] md:w-[35%] lg:w-[30%]",
+              imgSrc: "https://i.pinimg.com/736x/32/04/a0/3204a0923c23d27a651420c8407e585d.jpg",
+              isCenter: false,
+            },
+            {
+              position: "w-[30%] h-[90vh] absolute top-[50%] left-[50%] -translate-y-[50%] -translate-x-[50%] z-50 sm:w-[50%] md:w-[45%] lg:w-[35%]",
+              imgSrc: c1,
+              isCenter: true,
+            },
+            {
+              position: "w-[30%] h-[90vh] absolute top-[50%] translate-y-[-50%] right-0 sm:w-[40%] md:w-[35%] lg:w-[30%]",
+              imgSrc: "https://i.pinimg.com/736x/6e/74/34/6e74348f55ed5379f8df0e2e37a4f0d7.jpg",
+              isCenter: false,
+            },
+          ].map((box, index) => (
+            <div
+              key={index}
+              className={`leftup-img ${box.position} ${box.isCenter ? 'center-box' : ''} overflow-hidden flex items-center justify-center`}
+            >
+              <img
+                className="w-full h-full object-cover"
+                src={box.imgSrc}
+                alt={`Box image ${index}`}
+                loading={index === 0 ? "eager" : "lazy"}
+              />
+            </div>
+          ))}
+
+          {/* Animated Text */}
+          <div className="zoom-text absolute h-full w-full flex items-center justify-center flex-col text-center leading-none opacity-0 z-100">
+            <a href="">
+              <h2 id="about-head" className="text-white text-[5vw] leading-none font-black font-[Familjen_Grotesk]">
+                AAKAAR
+              </h2>
+            </a>
+            <p id="tagline" className="text-white leading-none tracking-widest font-bold text-[1.4vw] pt-3 pl-2 font-[Dancing_script]">
+              Timeless Design. Rooted in Aesthetic Intelligence.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* About founder section - Enhanced Mobile Layout */}
@@ -401,8 +420,153 @@ function About() {
             </div>
           </div>
 
-          {/* Tablet Layout - unchanged */}
-          {/* Desktop layout - unchanged */}
+          {/* Tablet Layout */}
+          <div className="hidden md:flex md:items-start lg:hidden min-h-screen w-full">
+            <div className="tablet-founder-container w-full flex flex-col items-start px-8 justify-start relative">
+              <div className="tablet-title text-[#D9D9D9] text-start pb-1 w-full">
+                <h2 className="text-[11vw] leading-none font-[Roboto_flex] font-extrabold">
+                  MEET THE
+                  <h2 className="text-[11.5vw] leading-none pl-12">FOUNDER</h2>
+                </h2>
+              </div>
+
+              <div className="tablet-image w-[60%] h-[58vh] overflow-hidden my-6 mt-[28vw] relative">
+                <img
+                  className="w-full h-full object-cover object-center saturate-70"
+                  src={main}
+                  alt="Abhiman image"
+                />
+              </div>
+
+              <div className="tablet-text-content w-[77%] text-white/90 text-[24px] py-4 font-normal leading-relaxed capitalize font-[Familjen_Grotesk] text-left">
+                {aboutParagraphs.map((paragraph, index) => (
+                  <p key={index} className="tablet-paragraph leading-tight mb-4">
+                    {paragraph}
+                  </p>
+                ))}
+
+                <div className="tablet-contact py-1">
+                  <div className="abhiman-mail-tablet flex items-center gap-3 justify-start mb-4">
+                    <ion-icon name="mail-outline" />
+                    <div className="mail py-4 text-lg leading-none text-white font-normal">
+                      <a
+                        href="mailto:abhimanjaware@gmail.com"
+                        className="hover:text-[18px] py-1 transition-all ease-in duration-400 lowercase"
+                      >
+                        abhimanjaware@gmail.com
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="abhiman-connect-tablet cta-btn py-2 flex justify-start">
+                    <div className="nav-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-4 py-[2px] relative rounded-full flex items-center justify-center gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
+                      <a
+                        href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative h-[3.2rem] flex items-center justify-center"
+                      >
+                        <div className="flex flex-col justify-center items-center relative">
+                          <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[2.5vw] transition-all ease-in duration-300 text-[#27170e] text-center tracking-tighter group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap">
+                            Let's Connect
+                          </span>
+                          <span className="absolute font-bold leading-none font-[Familjen_Grotesk] text-[2.5vw] transition-all ease-in duration-300 group-active:text-[#27170e] text-[#D9D9D9] text-center tracking-tighter opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap">
+                            Let's Connect
+                          </span>
+                        </div>
+                      </a>
+                      <div className="px-4 py-[12px] rounded-full group-hover:-rotate-45 scale-[0.2] transition-all ease-in group-hover:duration-300 group-hover:scale-90 text-[#27170e] group-active:bg-[#27170e] group-active:text-[#D9D9D9] bg-[#27170e] group-hover:text-[#27170e] group-hover:bg-[#D9D9D9]">
+                        <ion-icon name="arrow-forward-outline" size="small" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop layout */}
+          <div className="hidden lg:flex lg:pb-[10rem] justify-center items-center">
+            <div className="w-[90%] sm:w-[85%] md:w-[90%] lg:w-[85%] lg:items-end hidden lg:flex flex-col lg:flex-row justify-center gap-8 sm:gap-16 md:gap-12 lg:gap-32 items-center relative">
+              <div className="founder-container w-full sm:w-[70%] md:w-[35%] lg:w-[25%] flex flex-col justify-start items-center md:mr-6 lg:mr-12 mb-6 md:mb-0">
+                <div className="center-title text-[10vh] leading-none text-[#D9D9D9] text-center flex flex-col gap-0">
+                  <div className="meet-the-part text-start leading-none w-[125%] pr-6 font-[Roboto_flex] font-extrabold whitespace-nowrap">
+                    <span className="meet-the-letter">M</span>
+                    <span className="meet-the-letter">E</span>
+                    <span className="meet-the-letter">E</span>
+                    <span className="meet-the-letter">T</span>
+                    <span className="meet-the-letter">&nbsp;</span>
+                    <span className="meet-the-letter">T</span>
+                    <span className="meet-the-letter">H</span>
+                    <span className="meet-the-letter">E</span>
+                  </div>
+                  <div className="founder-part leading-none pl-12 font-[Roboto_flex] font-extrabold whitespace-nowrap">
+                    <span className="founder-letter">F</span>
+                    <span className="founder-letter">O</span>
+                    <span className="founder-letter">U</span>
+                    <span className="founder-letter">N</span>
+                    <span className="founder-letter">D</span>
+                    <span className="founder-letter">E</span>
+                    <span className="founder-letter">R</span>
+                  </div>
+                </div>
+                <div className="abhiman-image center-image w-[25vw] h-[50vh] overflow-hidden mt-4 lg:mt-0 relative">
+                  <img
+                    className="w-full saturate-70 h-full"
+                    style={{ objectFit: "cover", objectPosition: "bottom" }}
+                    src={main}
+                    alt="Abhiman image"
+                  />
+                </div>
+              </div>
+
+              <div className="abhiman-dets lg:pb-[3rem] text-white/90 w-full sm:w-[80%] md:w-[55%] lg:w-[45%] text-base sm:text-lg md:text-[1.3vw] lg:text-[1.3vw] xl:text-[1.2vw] font-normal leading-relaxed capitalize font-[Familjen_Grotesk] md:ml-4 lg:ml-20 text-left overflow-hidden flex flex-col justify-center lg:justify-end lg:items-start">
+                <div className="flex flex-col items-start overflow-hidden">
+                  {aboutParagraphs.map((paragraph, index) => (
+                    <p key={index} className="about-paragraph leading-tight overflow-hidden mb-3 sm:mb-4">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+                <div className="abhiman-join relative mt-4 sm:mt-6">
+                  <div className="abhiman-mail overflow-hidden flex items-center gap-2 sm:gap-3 justify-start">
+                    <ion-icon name="mail-outline" />
+                    <div className="mail py-4 sm:py-6 text-base sm:text-lg md:text-lg lg:text-xl leading-none text-white font-normal text-left">
+                      <a 
+                        href="mailto:abhimanjaware@gmail.com" 
+                        className="hover:text-[20.2px] transition-all ease-in duration-400 lowercase"
+                      >
+                        abhimanjaware@gmail.com
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="abhiman-connect cta-btn flex justify-start">
+                    <div className="nav-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-3 sm:px-4 py-[2px] relative rounded-full flex items-center justify-center gap-3 sm:gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
+                      <a 
+                        href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="relative h-[2.5rem] sm:h-[3rem] md:h-[3.2rem] lg:h-[3.5rem] flex items-center justify-center"
+                      >
+                        <div className="flex flex-col justify-center items-center relative">
+                          <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[4vw] sm:text-[3vw] md:text-[1.8vw] lg:text-[1.1vw] transition-all ease-in duration-300 text-[#27170e] text-center tracking-tighter group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap">
+                            Let's Connect
+                          </span>
+                          <span className="absolute font-bold leading-none font-[Familjen_Grotesk] text-[4vw] sm:text-[3vw] md:text-[1.8vw] lg:text-[1.1vw] transition-all ease-in duration-300 group-active:text-[#27170e] text-[#D9D9D9] text-center tracking-tighter opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap">
+                            Let's Connect
+                          </span>
+                        </div>
+                      </a>
+                      <div className="px-3 sm:px-4 py-[10px] sm:py-[14px] rounded-full group-hover:-rotate-45 scale-[0.2] transition-all ease-in group-hover:duration-300 group-hover:scale-90 text-[#27170e] group-active:bg-[#27170e] group-active:text-[#D9D9D9] bg-[#27170e] group-hover:text-[#27170e] group-hover:bg-[#D9D9D9]">
+                        <ion-icon name="arrow-forward-outline" size="small" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

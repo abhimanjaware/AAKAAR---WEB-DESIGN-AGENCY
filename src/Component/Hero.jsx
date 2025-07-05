@@ -26,36 +26,36 @@ export default function Hero() {
   }, [checkMobile]);
 
   useGSAP(() => {
-    gsap.set([imageRef.current, ctaRef.current], {
-      opacity: 0,
-      clearProps: "transform"
-    });
-
-    gsap.set(imageRef.current, {
-      scale: 1.08,
-      y: 15
-    });
-
-    gsap.set(ctaRef.current, {
-      y: 50
-    });
-
-    const tl = gsap.timeline();
-    tl.to(imageRef.current, {
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      duration: 1.6,
-      ease: "power2.out"
-    }).to(ctaRef.current, {
-      opacity: 1,
-      y: 0,
-      duration: 1.2,
-      ease: "back.out(1.7)"
-    }, "-=0.8");
-
-    // Only add heavy animations on desktop
     if (!isMobile) {
+      // === DESKTOP ANIMATIONS ONLY ===
+      gsap.set([imageRef.current, ctaRef.current], {
+        opacity: 0,
+        clearProps: "transform"
+      });
+
+      gsap.set(imageRef.current, {
+        scale: 1.08,
+        y: 15
+      });
+
+      gsap.set(ctaRef.current, {
+        y: 50
+      });
+
+      const tl = gsap.timeline();
+      tl.to(imageRef.current, {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        duration: 1.6,
+        ease: "power2.out"
+      }).to(ctaRef.current, {
+        opacity: 1,
+        y: 0,
+        duration: 1.2,
+        ease: "back.out(1.7)"
+      }, "-=0.8");
+
       gsap.fromTo(frameRef.current, {
         scale: 0.4,
         y: -600
@@ -174,31 +174,27 @@ export default function Hero() {
     <div ref={heroRef} className="relative w-full">
       <div ref={containerRef} className="hero bg-[#100905] h-screen w-full overflow-hidden">
         <div className="relative h-screen w-full">
-          {/* Background Image using PNG with fallback ready */}
+          {/* Hero Background Image */}
           <div
             ref={imageRef}
             className="absolute inset-0 h-[110%] w-[110%] -left-[5%] -top-[5%] z-0"
             style={{ perspective: isMobile ? 'none' : '1000px' }}
           >
-            <picture>
-              {/* If you ever add .webp, it will automatically load faster */}
-              <source srcSet={deskim} type="image/png" media="(min-width: 1024px)" />
-              <source srcSet={mobim} type="image/png" />
-              <img
-                src={isMobile ? mobim : deskim}
-                alt="Hero background"
-                className="h-full w-full object-cover object-center"
-                loading="eager"
-                fetchpriority="high"
-                decoding="async"
-                style={{ 
-                  filter: isMobile ? 'none' : 'drop-shadow(10px 10px #555)',
-                  transform: isMobile ? 'translateZ(0)' : 'none',
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden'
-                }}
-              />
-            </picture>
+            <img
+              src={isMobile ? mobim : deskim}
+              alt="Hero background"
+              className="h-full w-full object-cover object-center"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+              style={{
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                willChange: isMobile ? 'auto' : 'transform',
+                transform: 'translateZ(0)',
+                filter: isMobile ? 'none' : 'drop-shadow(10px 10px #555)'
+              }}
+            />
           </div>
 
           {/* CTA Button */}
