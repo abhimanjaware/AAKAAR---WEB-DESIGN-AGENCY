@@ -30,9 +30,9 @@ function Home() {
       <Loader />
       {isLoaded && (
         <div className={`main-content`}>
-          {/* <Hero /> */}
+          <Hero />
 
-          {/* <Navbar /> */}
+          <Navbar />
 
           <About />
 
@@ -44,7 +44,7 @@ function Home() {
           <Service />
           <Why />
           <Testimonials />
-          {/* <Footer /> */}
+          <Footer />
         </div>
       )}
       {/* <Button/>

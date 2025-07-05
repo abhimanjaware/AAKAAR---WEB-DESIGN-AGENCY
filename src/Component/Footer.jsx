@@ -1,220 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
+import React from 'react';
 
 function Footer() {
-  const [isInitialized, setIsInitialized] = useState(false);
-  const buttonRef = useRef(null);
-  const borderRef = useRef(null);
-  const textRefs = useRef([]);
-  const mainContainerRef = useRef(null);
-  const footerContentRef = useRef(null);
-  const footerLastRef = useRef(null);
-  const hoverAnimation = useRef(null);
-
-  useEffect(() => {
-    // Small delay to ensure DOM is fully ready
-    const initTimer = setTimeout(() => {
-      textRefs.current = [];
-
-      const ctx = gsap.context(() => {
-        // Set initial states immediately to prevent layout shifts
-        gsap.set(textRefs.current, {
-          y: 100,
-          opacity: 0,
-        });
-
-        gsap.set(buttonRef.current, {
-          scale: 0.7,
-          opacity: 0,
-          y: 40,
-        });
-
-        gsap.set(borderRef.current, {
-          opacity: 0,
-          scale: 0.8,
-        });
-
-        gsap.set(footerLastRef.current, {
-          y: 30,
-          opacity: 0,
-        });
-
-        // Set container to be immediately visible to prevent flash
-        gsap.set(mainContainerRef.current, {
-          opacity: 1,
-        });
-
-        gsap.set('.footer-head', {
-          scale: 1,
-          opacity: 1,
-        });
-
-        // Mark as initialized after setting initial states
-        setIsInitialized(true);
-
-        // Main entrance timeline
-        const mainTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: footerContentRef.current,
-            start: 'top 80%',
-            end: 'top 30%',
-            scrub: 0.5,
-            toggleActions: 'play none none reverse',
-          },
-          defaults: { ease: 'power2.out' },
-        });
-
-        mainTl
-          .to(textRefs.current, {
-            y: 0,
-            opacity: 1,
-            stagger: 0.15,
-            duration: 0.8,
-            ease: 'power3.out',
-          })
-          .to(
-            buttonRef.current,
-            {
-              scale: 1,
-              opacity: 1,
-              y: 0,
-              duration: 0.6,
-              ease: 'back.out(1.7)',
-            },
-            '-=0.4'
-          )
-          .to(
-            borderRef.current,
-            {
-              opacity: 0.1,
-              scale: 1,
-              duration: 0.4,
-            },
-            '<'
-          )
-          .to(
-            footerLastRef.current,
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.5,
-            },
-            '-=0.2'
-          );
-
-        // Parallax text float
-        gsap.to(textRefs.current, {
-          yPercent: -20,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: footerContentRef.current,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: true,
-          },
-        });
-
-        // Floating text effect
-        textRefs.current.forEach((el, index) => {
-          gsap.to(el, {
-            y: '+=8',
-            duration: 2,
-            ease: 'sine.inOut',
-            yoyo: true,
-            repeat: -1,
-            delay: index * 0.2,
-          });
-        });
-
-        // Footer last section fade up
-        gsap.fromTo(
-          footerLastRef.current,
-          { y: 20, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.8,
-            ease: 'power2.out',
-            scrollTrigger: {
-              trigger: footerContentRef.current,
-              start: 'top 70%',
-            },
-          }
-        );
-
-        // Border rotation
-        hoverAnimation.current = gsap.to(borderRef.current, {
-          rotation: 360,
-          duration: 8,
-          ease: 'linear',
-          repeat: -1,
-          paused: true,
-        });
-
-        const handleMouseEnter = () => {
-          gsap.killTweensOf(borderRef.current, 'opacity,scale');
-          gsap.to(borderRef.current, {
-            opacity: 0.5,
-            scale: 1,
-            duration: 0.3,
-            ease: 'power2.inOut',
-          });
-          hoverAnimation.current.play();
-        };
-
-        const handleMouseLeave = () => {
-          gsap.killTweensOf(borderRef.current, 'opacity,scale');
-          gsap.to(borderRef.current, {
-            opacity: 0.1,
-            scale: 1.1,
-            duration: 0.3,
-            ease: 'power2.inOut',
-          });
-          hoverAnimation.current.pause();
-        };
-
-        if (buttonRef.current) {
-          buttonRef.current.addEventListener('mouseenter', handleMouseEnter);
-          buttonRef.current.addEventListener('mouseleave', handleMouseLeave);
-        }
-
-        return () => {
-          if (buttonRef.current) {
-            buttonRef.current.removeEventListener('mouseenter', handleMouseEnter);
-            buttonRef.current.removeEventListener('mouseleave', handleMouseLeave);
-          }
-        };
-      }, mainContainerRef);
-
-      return () => {
-        ctx.revert();
-      };
-    }, 50); // Increased delay to ensure proper initialization
-
-    return () => clearTimeout(initTimer);
-  }, []);
-
-  const addToRefs = (el) => {
-    if (el && !textRefs.current.includes(el)) {
-      textRefs.current.push(el);
-    }
-  };
-
   return (
     <div 
       id="contact" 
-      ref={mainContainerRef} 
       className="overflow-hidden px-3 bg-[#1e110a]"
-      style={{ 
-        opacity: isInitialized ? 1 : 0,
-        transition: 'opacity 0.1s ease-in-out'
-      }}
     >
       <div
-        ref={footerContentRef}
         className="footer-content min-h-screen w-full relative bg-[#1e110a]"
       >
         <div
@@ -222,7 +14,6 @@ function Footer() {
         >
           <div className="letstext overflow-hidden">
             <p
-              ref={addToRefs}
               className="whitespace-nowrap text-[11vw] lg:text-[6vw] md:text-[11vw] pl-5 md:pl-3 lg:pl-0 text-[#D9D9D9] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-start uppercase"
             >
               Let's Start
@@ -231,7 +22,6 @@ function Footer() {
 
           <div className="extratext overflow-hidden pt-3 px-4 md:px-2">
             <p
-              ref={addToRefs}
               className="whitespace-nowrap text-[#D9D9D9] text-[14vw] md:text-[15vw] lg:text-[12vw] tracking-tight font-black font-[Tangerine] leading-none text-center"
             >
               Something Extraordinary
@@ -240,7 +30,6 @@ function Footer() {
 
           <div className="togethertext overflow-hidden">
             <p
-              ref={addToRefs}
               className="whitespace-nowrap text-[10vw] md:text-[11vw] lg:text-[6vw] text-[#D9D9D9] tracking-tight font-black font-[Familjen_Grotesk] pr-5 md:pr-3 lg:pr-0 leading-none text-end uppercase"
             >
               Together
@@ -250,14 +39,12 @@ function Footer() {
           <div className="btn absolute top-[40%] md:top-[50%] lg:left-[5%] lg:top-[63%] md:left-[26%] right-40 sm:left-[23%]">
             <div className="relative flex items-center justify-center">
               <span
-                ref={borderRef}
-                className="absolute w-[5vw] h-[5vw] md:w-[40vw] md:h-[40vw] lg:w-[17vw] lg:h-[17vw] rounded-full border border-[#D9D9D9]/30 opacity-0"
+                className="absolute w-[5vw] h-[5vw] md:w-[40vw] md:h-[40vw] lg:w-[17vw] lg:h-[17vw] rounded-full border border-[#D9D9D9]/30 opacity-10 group-hover:opacity-50 transition-opacity duration-300"
               ></span>
 
               <a
                 href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!"
                 target='_blank'
-                ref={buttonRef}
                 className="group relative flex items-center justify-center p-32 md:p-24 sm:p-20 w-[5vw] h-[5vw] md:w-[40vw] md:h-[40vw] lg:w-[17vw] lg:h-[17vw] bg-[#D9D9D9] rounded-full text-[#1e110a] font-bold text-xl overflow-hidden transform will-change-transform"
               >
                 <span className="absolute inset-0 bg-[#4f2e1d] rounded-full transform scale-0 group-hover:scale-100 transition-transform duration-500 ease-out"></span>
@@ -270,7 +57,6 @@ function Footer() {
         </div>
 
         <div
-          ref={footerLastRef}
           className="footer-last w-full absolute bottom-0 flex pb-4 flex-col-reverse lg:flex-row lg:justify-between text-center justify-end lg:text-start lg:flex"
         >
           <div className="copyright px-4">
