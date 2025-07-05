@@ -546,6 +546,7 @@ function About() {
                           </span>
                         </div>
                       </a>
+                      
                       <div className="px-3 sm:px-4 py-[10px] sm:py-[14px] rounded-full group-hover:-rotate-45 scale-[0.2] transition-all ease-in group-hover:duration-300 group-hover:scale-90 text-[#27170e] group-active:bg-[#27170e] group-active:text-[#D9D9D9] bg-[#27170e] group-hover:text-[#27170e] group-hover:bg-[#D9D9D9]">
                         <ion-icon name="arrow-forward-outline" size="small" />
                       </div>
