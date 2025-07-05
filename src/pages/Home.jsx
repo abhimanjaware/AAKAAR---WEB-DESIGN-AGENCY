@@ -44,7 +44,7 @@ function Home() {
           <Service />
           <Why />
           <Testimonials />
-          <Footer />
+          {/* <Footer /> */}
         </div>
       )}
       {/* <Button/>
