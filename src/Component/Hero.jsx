@@ -3,7 +3,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import deskim from "../assets/images/hero-desk.png";
-import mobim from "../assets/images/hero-mob.png";
+import mobim from "../assets/images/hero-mob.webp";
 
 gsap.registerPlugin(ScrollTrigger);
 
