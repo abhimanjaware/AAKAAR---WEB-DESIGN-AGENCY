@@ -32,7 +32,7 @@ function Home() {
         <div className={`main-content`}>
           <Hero />
 
-          <Navbar />
+          {/* <Navbar /> */}
 
           <About />
 
