@@ -20,40 +20,54 @@ function About() {
     "Every brand has a story, and we bring it to life through clean code, timeless visuals, and thoughtful interaction.We specialize in web design and development for clients who care about details. Our goal is to create high-end web experiences that make your brand go from a 'ordinary' to a 'premium'."
   ], []);
 
-  // Enhanced text animation that works on both mobile and desktop
+  // Enhanced mobile-friendly text animation
   const setupTextAnimation = () => {
+    const isMobile = window.innerWidth < 768;
     const selectors = ['#craft p', '#out p', '#webs p', '#leave p', '#impression p'];
     const elements = selectors.map(sel => document.querySelector(sel)).filter(Boolean);
     
     if (elements.length === 0) return;
 
-    const isMobile = window.innerWidth < 768;
-    const trigger = isMobile ? componentRef.current : "#about-anime";
+    // Mobile-specific adjustments
+    const mobileOffsets = isMobile ? {
+      craft: { startX: -10, endX: 20 },
+      out: { startX: 30, endX: 10 },
+      webs: { startY: -10, endX: 40 },
+      leave: { startX: 10, endX: -10 },
+      impression: { startX: 40, endX: -40 }
+    } : {
+      craft: { startX: -30, endX: 50 },
+      out: { startX: 80, endX: 20 },
+      webs: { startY: -25, endX: 100 },
+      leave: { startX: 30, endX: -20 },
+      impression: { startX: 100, endX: -100 }
+    };
 
     const tl = gsap.timeline({
       scrollTrigger: {
-        trigger: trigger,
-        start: "top center",
-        end: "bottom center",
-        scrub: true,
+        trigger: "#about-anime",
+        start: "top bottom",
+        end: "bottom top",
+        scrub: isMobile ? 1.2 : 1.5,
         markers: false,
       }
     });
 
-    // Different animation values for mobile vs desktop
-    if (isMobile) {
-      tl.fromTo(elements[0], { x: -50, opacity: 0 }, { x: 0, opacity: 1, ease: "power2.out" }, 0)
-        .fromTo(elements[1], { x: 50, opacity: 0 }, { x: 0, opacity: 1, ease: "power2.out" }, 0)
-        .fromTo(elements[2], { y: 30, opacity: 0 }, { y: 0, opacity: 1, ease: "power2.out" }, 0)
-        .fromTo(elements[3], { x: -40, opacity: 0 }, { x: 0, opacity: 1, ease: "power2.out" }, 0)
-        .fromTo(elements[4], { x: 40, opacity: 0 }, { x: 0, opacity: 1, ease: "power2.out" }, 0);
-    } else {
-      tl.fromTo(elements[0], { x: -100, opacity: 0 }, { x: 50, opacity: 1, ease: "power2.out" }, 0)
-        .fromTo(elements[1], { x: 100, opacity: 0 }, { x: -20, opacity: 1, ease: "power2.out" }, 0)
-        .fromTo(elements[2], { y: -50, opacity: 0 }, { y: 0, opacity: 1, ease: "power2.out" }, 0)
-        .fromTo(elements[3], { x: -80, opacity: 0 }, { x: 20, opacity: 1, ease: "power2.out" }, 0)
-        .fromTo(elements[4], { x: 80, opacity: 0 }, { x: -40, opacity: 1, ease: "power2.out" }, 0);
-    }
+    tl.fromTo(elements[0], 
+      { x: mobileOffsets.craft.startX, opacity: 0.8 }, 
+      { x: mobileOffsets.craft.endX, opacity: 1, ease: "sine.out" }, 0)
+      .fromTo(elements[1], 
+        { x: mobileOffsets.out.startX, y: isMobile ? 0 : -10, opacity: 0.8 }, 
+        { x: mobileOffsets.out.endX, y: isMobile ? 0 : -10, opacity: 1, ease: "sine.out" }, 0)
+      .fromTo(elements[2], 
+        { y: mobileOffsets.webs.startY, opacity: 0.8 }, 
+        { x: mobileOffsets.webs.endX, y: isMobile ? 0 : -25, opacity: 1, ease: "sine.out" }, 0)
+      .fromTo(elements[3], 
+        { x: mobileOffsets.leave.startX, y: isMobile ? 0 : -25, opacity: 0.8 }, 
+        { x: mobileOffsets.leave.endX, y: isMobile ? 0 : -25, opacity: 1, ease: "sine.out" }, 0)
+      .fromTo(elements[4], 
+        { x: mobileOffsets.impression.startX, y: isMobile ? 0 : -25, opacity: 0.8 }, 
+        { x: mobileOffsets.impression.endX, y: isMobile ? 0 : -25, opacity: 1, ease: "sine.out" }, 0);
 
     return tl;
   };
@@ -61,6 +75,10 @@ function About() {
   // Desktop zoom animation
   const setupZoomAnimation = () => {
     const centerBox = document.querySelector(".center-box");
+    const others = document.querySelectorAll(".leftup-img:not(.center-box)");
+    const textElements = document.querySelectorAll(".zoom-text");
+    const tagline = document.querySelectorAll("#tagline");
+
     if (!centerBox) return;
 
     const { width: boxWidth, height: boxHeight } = centerBox.getBoundingClientRect();
@@ -73,16 +91,37 @@ function About() {
         trigger: ".about-wrapper",
         start: "top top",
         end: "+=300%",
-        scrub: 2,
+        scrub: 2.3,
         pin: ".about-content",
-      }
+        anticipatePin: 1,
+      },
     });
 
     tl.to(centerBox, {
       scale: finalScale,
       filter: "blur(12px)",
-      ease: "power2.inOut"
-    });
+      ease: "linear",
+      transformOrigin: "center center",
+      zIndex: 50,
+    }, 0)
+    .to(others, {
+      opacity: 0,
+      scale: 0.85,
+      ease: "linear",
+    }, 0)
+    .to(textElements, {
+      opacity: 1,
+      y: 0,
+      ease: "power2.out",
+      stagger: 3,
+      zIndex: 100,
+    }, 0.2)
+    .to(tagline, {
+      opacity: 1,
+      y: 0,
+      ease: "power2.out",
+      zIndex: 100,
+    }, 0.35);
 
     return tl;
   };
@@ -92,7 +131,8 @@ function About() {
     const isMobile = window.innerWidth < 768;
     
     if (isMobile) {
-      const elements = {
+      const mobileElements = {
+        container: document.querySelector(".mobile-founder-container"),
         title: document.querySelector(".mobile-title"),
         image: document.querySelector(".mobile-image"),
         paragraphs: document.querySelectorAll(".mobile-paragraph"),
@@ -100,34 +140,52 @@ function About() {
         connect: document.querySelector(".abhiman-connect-mobile")
       };
 
-      if (!elements.title) return;
+      // Early return if elements not found
+      if (!mobileElements.container) return;
 
-      gsap.set([elements.title, elements.image, ...elements.paragraphs, elements.mail, elements.connect], {
-        opacity: 0,
-        y: 20
-      });
+      // Set initial states with mobile-specific values
+      gsap.set(mobileElements.title, { opacity: 0, y: 10 });
+      gsap.set(mobileElements.image, { opacity: 0, y: 15, scale: 0.95 });
+      gsap.set(mobileElements.paragraphs, { opacity: 0, y: 10 });
+      gsap.set([mobileElements.mail, mobileElements.connect], { opacity: 0, y: 5 });
 
+      // Create timeline with mobile-optimized settings
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: ".founder-section",
-          start: "top 80%",
+          start: "top 85%",
           toggleActions: "play none none none",
+          markers: false
         }
       });
 
-      tl.to(elements.title, { opacity: 1, y: 0, duration: 0.6 })
-        .to(elements.image, { opacity: 1, y: 0, duration: 0.5 }, "-=0.2")
-        .to(elements.paragraphs, { 
-          opacity: 1, 
-          y: 0, 
-          stagger: 0.1,
-          duration: 0.4 
-        }, "-=0.2")
-        .to([elements.mail, elements.connect], { 
-          opacity: 1, 
-          y: 0, 
-          duration: 0.3 
-        }, "-=0.1");
+      // Smoother mobile animations
+      tl.to(mobileElements.title, {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        ease: "power2.out"
+      })
+      .to(mobileElements.image, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.6,
+        ease: "power2.out"
+      }, "-=0.1")
+      .to(mobileElements.paragraphs, {
+        opacity: 1,
+        y: 0,
+        stagger: 0.06,
+        duration: 0.4,
+        ease: "power2.out"
+      }, "-=0.1")
+      .to([mobileElements.mail, mobileElements.connect], {
+        opacity: 1,
+        y: 0,
+        duration: 0.25,
+        ease: "power2.out"
+      }, "-=0.05");
 
       return tl;
     }
@@ -146,6 +204,10 @@ function About() {
       opacity: 0, 
       y: 50,
       rotationY: 90 
+    });
+    gsap.set([elements.abhimanImg, elements.paragraphs, elements.mail, elements.connect], { 
+      opacity: 0,
+      y: 20 
     });
 
     const tl = gsap.timeline({
@@ -200,8 +262,10 @@ function About() {
     const ctx = gsap.context(() => {
       const textTl = setupTextAnimation();
       const founderTl = setupFounderAnimation();
+
       animationRefs.current = [textTl, founderTl];
       
+      // Only setup zoom animation on desktop
       if (window.innerWidth >= 1024) {
         const zoomTl = setupZoomAnimation();
         animationRefs.current.push(zoomTl);
@@ -217,17 +281,19 @@ function About() {
 
   return (
     <div ref={componentRef} className="about bg-[#1e110a] overflow-x-hidden">
-      {/* Entry Screen */}
+      {/* Entry Screen - Mobile Optimized */}
       <div className="about-moving bg-[#1e110a] h-fit md:h-[100vh] text-center">
+        <div className='aakar-head w-full h-fit pt-16 flex flex-col items-center justify-center text-center leading-normal' />
+        
         <div className="bg-[#1e110a] h-fit md:h-screen w-full flex flex-col justify-center py-[4rem] leading-tight text-[#D9D9D9] lg:px-[15rem] md:pb-[7rem]" id="about-anime">
           <div className="w-full flex justify-start" id="craft">
             <p className="whitespace-nowrap text-[13vw] pl-2 lg:text-[7vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none">CRAFTING</p>
           </div>
           <div className="w-full" id="out">
-            <p className="whitespace-nowrap text-[21vw] lg:text-[11.5vw] tracking-normal font-[Tangerine] leading-none text-start pl-[3rem] lg:pl-[17rem] mt-[-50px]">Outstanding</p>
+            <p className="whitespace-nowrap text-[21vw] lg:text-[11.5vw] tracking-normal font-[Tangerine] leading-none text-start pl-[3rem] lg:pl-[17rem] mt-[-50px] md:mt-[-50px]">Outstanding</p>
           </div>
           <div id="webs">
-            <p className="whitespace-nowrap text-[12.5vw] lg:text-[6vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-end pr-[18rem]">WEBSITES</p>
+            <p className="whitespace-nowrap text-[12.5vw] lg:text-[6vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-end pr-[4rem] md:pr-[18rem]">WEBSITES</p>
           </div>
           <div id="leave">
             <p className="whitespace-nowrap text-[12vw] lg:text-[7vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-center">THAT LEAVES A</p>
@@ -285,42 +351,42 @@ function About() {
         </div>
       </div>
 
-      {/* About founder section */}
-      <div id="about" className="abhiman min-h-screen w-full bg-[#100905] flex justify-center items-center overflow-hidden">
+      {/* About founder section - Enhanced Mobile Layout */}
+      <div id="about" className="abhiman min-h-screen w-full bg-[#100905] flex justify-center items-center overflow-hidden mt-0 md:mt-[-10rem]">
         <div className="founder-section w-full h-auto min-h-screen flex justify-center items-center pt-12 md:pt-18 lg:pt-42 relative">
           
-          {/* Mobile layout - Now fully visible */}
-          <div className="md:hidden w-full min-h-screen py-12 px-4">
-            <div className="mobile-founder-container w-full flex flex-col items-start justify-start">
-              <div className="mobile-title text-[#D9D9D9] text-start pb-4 w-full">
+          {/* Enhanced Mobile layout */}
+          <div className="md:hidden min-h-screen w-full">
+            <div className="mobile-founder-container w-full flex flex-col items-start px-5 justify-start relative pt-8">
+              <div className="mobile-title text-[#D9D9D9] text-start pb-2 w-full z-10">
                 <h2 className="text-[14vw] leading-none font-[Roboto_flex] font-extrabold">
                   MEET THE
-                  <h2 className="text-[15vw] leading-none pl-8">FOUNDER</h2>
+                  <h2 className="text-[15vw] leading-none pl-6 sm:pl-10">FOUNDER</h2>
                 </h2>
               </div>
 
-              <div className="mobile-image w-full h-[50vh] overflow-hidden relative my-6">
+              <div className="mobile-image w-[85%] sm:w-[60%] h-[40vh] sm:h-[50vh] overflow-hidden relative mt-4 mx-auto">
                 <img
-                  className="w-full h-full object-cover object-center"
+                  className="w-full h-full object-cover object-center saturate-60"
                   src={main}
                   alt="Abhiman image"
                 />
               </div>
 
-              <div className="mobile-text-content w-full text-white/90 text-[16px] font-normal leading-relaxed capitalize font-[Familjen_Grotesk] text-left">
+              <div className="mobile-text-content w-full pt-6 text-white/90 text-[16px] sm:text-lg font-normal leading-relaxed capitalize font-[Familjen_Grotesk] text-left px-4">
                 {aboutParagraphs.map((paragraph, index) => (
-                  <p key={index} className="mobile-paragraph leading-tight mb-4">
+                  <p key={index} className="mobile-paragraph leading-tight mb-4 sm:mb-4">
                     {paragraph}
                   </p>
                 ))}
 
                 <div className="mobile-contact py-4">
-                  <div className="abhiman-mail-mobile flex items-center gap-3 justify-start mb-4">
+                  <div className="abhiman-mail-mobile flex items-center gap-2 sm:gap-3 justify-start mb-4">
                     <ion-icon name="mail-outline" />
-                    <div className="mail text-base leading-none text-white font-normal">
+                    <div className="mail py-2 sm:py-3 text-base sm:text-lg leading-none text-white font-normal text-left">
                       <a
                         href="mailto:abhimanjaware@gmail.com"
-                        className="hover:text-[16px] transition-all ease-in duration-400 lowercase"
+                        className="hover:text-[16.2px] py-1 transition-all ease-in duration-400 lowercase"
                       >
                         abhimanjaware@gmail.com
                       </a>
@@ -328,23 +394,88 @@ function About() {
                   </div>
 
                   <div className="abhiman-connect-mobile cta-btn py-2 flex justify-start">
-                    <div className="nav-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] px-4 py-[2px] relative rounded-full flex items-center justify-center gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e]">
+                    <div className="nav-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-3 sm:px-4 py-[2px] relative rounded-full flex items-center justify-center gap-3 sm:gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
                       <a
                         href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="relative h-[2.5rem] flex items-center justify-center"
+                        className="relative h-[2.5rem] sm:h-[3rem] flex items-center justify-center"
                       >
                         <div className="flex flex-col justify-center items-center relative">
-                          <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[4vw] text-[#27170e] text-center tracking-tighter group-hover:translate-y-[-100%] group-hover:opacity-0 whitespace-nowrap">
+                          <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[4vw] sm:text-[3vw] text-[#27170e] text-center tracking-tighter group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap">
                             Let's Connect
                           </span>
-                          <span className="absolute font-bold leading-none font-[Familjen_Grotesk] text-[4vw] transition-all ease-in duration-300 text-[#D9D9D9] text-center tracking-tighter opacity-0 group-hover:opacity-100 translate-y-[100%] group-hover:translate-y-0 whitespace-nowrap">
+                          <span className="absolute font-bold leading-none font-[Familjen_Grotesk] text-[4vw] sm:text-[3vw] transition-all ease-in duration-300 group-active:text-[#27170e] text-[#D9D9D9] text-center tracking-tighter opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap">
                             Let's Connect
                           </span>
                         </div>
                       </a>
-                      <div className="px-4 py-[12px] rounded-full group-hover:-rotate-45 transition-all ease-in duration-300 text-[#27170e] group-hover:bg-[#D9D9D9]">
+                      <div className="px-3 sm:px-4 py-[10px] sm:py-[14px] rounded-full group-hover:-rotate-45 scale-[0.2] transition-all ease-in group-hover:duration-300 group-hover:scale-90 text-[#27170e] group-active:bg-[#27170e] group-active:text-[#D9D9D9] bg-[#27170e] group-hover:text-[#27170e] group-hover:bg-[#D9D9D9]">
+                        <ion-icon name="arrow-forward-outline" size="small" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tablet Layout */}
+          <div className="hidden md:flex md:items-start lg:hidden min-h-screen w-full">
+            <div className="tablet-founder-container w-full flex flex-col items-start px-8 justify-start relative">
+              <div className="tablet-title text-[#D9D9D9] text-start pb-1 w-full">
+                <h2 className="text-[11vw] leading-none font-[Roboto_flex] font-extrabold">
+                  MEET THE
+                  <h2 className="text-[11.5vw] leading-none pl-12">FOUNDER</h2>
+                </h2>
+              </div>
+
+              <div className="tablet-image w-[60%] h-[58vh] overflow-hidden my-6 mt-[28vw] relative">
+                <img
+                  className="w-full h-full object-cover object-center saturate-70"
+                  src={main}
+                  alt="Abhiman image"
+                />
+              </div>
+
+              <div className="tablet-text-content w-[77%] text-white/90 text-[24px] py-4 font-normal leading-relaxed capitalize font-[Familjen_Grotesk] text-left">
+                {aboutParagraphs.map((paragraph, index) => (
+                  <p key={index} className="tablet-paragraph leading-tight mb-4">
+                    {paragraph}
+                  </p>
+                ))}
+
+                <div className="tablet-contact py-1">
+                  <div className="abhiman-mail-tablet flex items-center gap-3 justify-start mb-4">
+                    <ion-icon name="mail-outline" />
+                    <div className="mail py-4 text-lg leading-none text-white font-normal">
+                      <a
+                        href="mailto:abhimanjaware@gmail.com"
+                        className="hover:text-[18px] py-1 transition-all ease-in duration-400 lowercase"
+                      >
+                        abhimanjaware@gmail.com
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="abhiman-connect-tablet cta-btn py-2 flex justify-start">
+                    <div className="nav-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-4 py-[2px] relative rounded-full flex items-center justify-center gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
+                      <a
+                        href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative h-[3.2rem] flex items-center justify-center"
+                      >
+                        <div className="flex flex-col justify-center items-center relative">
+                          <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[2.5vw] transition-all ease-in duration-300 text-[#27170e] text-center tracking-tighter group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap">
+                            Let's Connect
+                          </span>
+                          <span className="absolute font-bold leading-none font-[Familjen_Grotesk] text-[2.5vw] transition-all ease-in duration-300 group-active:text-[#27170e] text-[#D9D9D9] text-center tracking-tighter opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap">
+                            Let's Connect
+                          </span>
+                        </div>
+                      </a>
+                      <div className="px-4 py-[12px] rounded-full group-hover:-rotate-45 scale-[0.2] transition-all ease-in group-hover:duration-300 group-hover:scale-90 text-[#27170e] group-active:bg-[#27170e] group-active:text-[#D9D9D9] bg-[#27170e] group-hover:text-[#27170e] group-hover:bg-[#D9D9D9]">
                         <ion-icon name="arrow-forward-outline" size="small" />
                       </div>
                     </div>
