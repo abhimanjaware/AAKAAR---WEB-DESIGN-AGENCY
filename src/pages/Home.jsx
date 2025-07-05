@@ -34,11 +34,11 @@ function Home() {
 
           {/* <Navbar /> */}
 
-          {/* <About /> */}
+          <About />
 
           {/* <Showcase/>  */}
 
-          <Projects />
+          {/* <Projects /> */}
 
           <Process />
           <Service />
