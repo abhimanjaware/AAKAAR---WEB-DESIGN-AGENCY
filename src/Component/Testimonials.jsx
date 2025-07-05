@@ -140,8 +140,8 @@ const TestimonialsGSAP = () => {
         </span>
       </div>
 
-      <div className="absolute top-0 bottom-0 left-0 w-20 sm:w-32 z-20 bg-gradient-to-r from-[#D9D9D9] to-transparent pointer-events-none" />
-      <div className="absolute top-0 bottom-0 right-0 w-20 sm:w-32 z-20 bg-gradient-to-l from-[#D9D9D9] to-transparent pointer-events-none" />
+      <div className="absolute top-0 bottom-0 left-0 w-20 sm:w-32  bg-gradient-to-r from-[#D9D9D9] to-transparent pointer-events-none" />
+      <div className="absolute top-0 bottom-0 right-0 w-20 sm:w-32  bg-gradient-to-l from-[#D9D9D9] to-transparent pointer-events-none" />
 
       <div className="overflow-hidden w-full px-4 relative z-10 flex justify-center">
         <div

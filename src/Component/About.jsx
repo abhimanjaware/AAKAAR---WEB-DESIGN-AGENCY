@@ -9,6 +9,7 @@ gsap.registerPlugin(ScrollTrigger);
 function About() {
   const componentRef = useRef(null);
   const animationRefs = useRef([]);
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 
   // Memoized data to prevent recreation on every render
   const boxesData = useMemo(() => [
@@ -38,8 +39,27 @@ function About() {
     "Every brand has a story, and we bring it to life through clean code, timeless visuals, and thoughtful interaction.We specialize in web design and development for clients who care about details. Our goal is to create high-end web experiences that make your brand go from a 'ordinary' to a 'premium'."
   ], []);
 
-  // Smoother text animation for .about-moving
+  // Simplified text animation for mobile, full animation for desktop
   const setupTextAnimation = () => {
+    if (isMobile) {
+      // Minimal animation for mobile - just fade in
+      const elements = document.querySelectorAll('#craft p, #out p, #webs p, #leave p, #impression p');
+      gsap.from(elements, {
+        opacity: 0,
+        y: 20,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: "#about-anime",
+          start: "top 80%",
+          toggleActions: "play none none none"
+        }
+      });
+      return;
+    }
+
+    // Original desktop animation
     const selectors = ['#craft p', '#out p', '#webs p', '#leave p', '#impression p'];
     const elements = selectors.map(sel => document.querySelector(sel)).filter(Boolean);
     
@@ -50,12 +70,11 @@ function About() {
         trigger: "#about-anime",
         start: "top bottom",
         end: "bottom top",
-        scrub: 1.5, // Increased scrub value for smoother animation
+        scrub: 1.5,
         markers: false,
       }
     });
 
-    // Smoother easing and adjusted timing
     tl.fromTo(elements[0], 
       { x: -30, opacity: 0.8 }, 
       { x: 50, opacity: 1, ease: "sine.out" }, 0)
@@ -75,8 +94,10 @@ function About() {
     return tl;
   };
 
-  // Original desktop animations (unchanged)
+  // Only setup zoom animation for desktop
   const setupZoomAnimation = () => {
+    if (isMobile) return null;
+
     const centerBox = document.querySelector(".center-box");
     const others = document.querySelectorAll(".leftup-img:not(.center-box)");
     const textElements = document.querySelectorAll(".zoom-text");
@@ -139,67 +160,30 @@ function About() {
     return tl;
   };
 
-  // Adjusted founder animation for mobile (earlier reveal)
+  // Simplified founder animation for mobile
   const setupFounderAnimation = () => {
-    const isMobile = window.innerWidth < 768;
-    
-    // Mobile-specific adjustments
     if (isMobile) {
-      const mobileElements = {
-        container: document.querySelector(".mobile-founder-container"),
-        title: document.querySelector(".mobile-title"),
-        image: document.querySelector(".mobile-image"),
-        paragraphs: document.querySelectorAll(".mobile-paragraph"),
-        mail: document.querySelector(".abhiman-mail-mobile"),
-        connect: document.querySelector(".abhiman-connect-mobile")
-      };
-
-      // Set initial states
-      gsap.set([mobileElements.title, mobileElements.image, ...mobileElements.paragraphs, mobileElements.mail, mobileElements.connect], {
+      // Simple fade-in animation for mobile
+      const elements = document.querySelectorAll(
+        '.mobile-title, .mobile-image, .mobile-paragraph, .abhiman-mail-mobile, .abhiman-connect-mobile'
+      );
+      
+      gsap.from(elements, {
         opacity: 0,
-        y: 20
-      });
-
-      // Create timeline with earlier trigger
-      const tl = gsap.timeline({
+        y: 20,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power2.out",
         scrollTrigger: {
           trigger: ".founder-section",
-          start: "top 80%", // Changed from 60% to 80% for earlier reveal
-          toggleActions: "play none none none",
+          start: "top 80%",
+          toggleActions: "play none none none"
         }
       });
-
-      // Animate mobile elements with smoother transitions
-      tl.to(mobileElements.title, {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        ease: "power2.out"
-      })
-      .to(mobileElements.image, {
-        opacity: 1,
-        y: 0,
-        duration: 0.5,
-        ease: "power2.out"
-      }, "-=0.2")
-      .to(mobileElements.paragraphs, {
-        opacity: 1,
-        y: 0,
-        stagger: 0.08,
-        duration: 0.4,
-        ease: "power2.out"
-      }, "-=0.2")
-      .to([mobileElements.mail, mobileElements.connect], {
-        opacity: 1,
-        y: 0,
-        duration: 0.3,
-        ease: "power2.out"
-      }, "-=0.1");
-
-      return tl;
+      return;
     }
 
-    // Original desktop animations (unchanged)
+    // Original desktop animations
     const elements = {
       meetTheLetters: document.querySelectorAll(".meet-the-letter"),
       founderLetters: document.querySelectorAll(".founder-letter"),
@@ -270,10 +254,10 @@ function About() {
   useEffect(() => {
     const ctx = gsap.context(() => {
       const textTl = setupTextAnimation();
-      const zoomTl = setupZoomAnimation();
+      const zoomTl = isMobile ? null : setupZoomAnimation();
       const founderTl = setupFounderAnimation();
 
-      animationRefs.current = [textTl, zoomTl, founderTl];
+      animationRefs.current = [textTl, zoomTl, founderTl].filter(Boolean);
     }, componentRef.current);
 
     return () => {
@@ -281,7 +265,7 @@ function About() {
       animationRefs.current.forEach(anim => anim?.kill());
       ScrollTrigger.getAll().forEach(st => st.kill());
     };
-  }, []);
+  }, [isMobile]);
 
   return (
     <div ref={componentRef} className="about bg-[#1e110a] overflow-x-hidden">
@@ -308,36 +292,38 @@ function About() {
         </div>
       </div>
 
-      {/* Scroll Section */}
-      <div className="about-wrapper overflow-hidden min-h-[400vh] relative hidden lg:block">
-        <div className="about-content h-screen w-full relative z-10">
-          {boxesData.map((box, index) => (
-            <div
-              key={index}
-              className={`leftup-img ${box.position} ${box.isCenter ? 'center-box' : ''} overflow-hidden flex items-center justify-center`}
-            >
-              <img
-                className="w-full h-full object-cover"
-                src={box.imgSrc}
-                alt={`Box image ${index}`}
-                loading={index === 0 ? "eager" : "lazy"}
-              />
-            </div>
-          ))}
+      {/* Scroll Section - Hidden on mobile */}
+      {!isMobile && (
+        <div className="about-wrapper overflow-hidden min-h-[400vh] relative hidden lg:block">
+          <div className="about-content h-screen w-full relative z-10">
+            {boxesData.map((box, index) => (
+              <div
+                key={index}
+                className={`leftup-img ${box.position} ${box.isCenter ? 'center-box' : ''} overflow-hidden flex items-center justify-center`}
+              >
+                <img
+                  className="w-full h-full object-cover"
+                  src={box.imgSrc}
+                  alt={`Box image ${index}`}
+                  loading={index === 0 ? "eager" : "lazy"}
+                />
+              </div>
+            ))}
 
-          {/* Animated Text */}
-          <div className="zoom-text absolute h-full w-full flex items-center justify-center flex-col text-center leading-none opacity-0 z-100">
-            <a href="">
-              <h2 id="about-head" className="text-white text-[5vw] leading-none font-black font-[Familjen_Grotesk]">
-                AAKAAR
-              </h2>
-            </a>
-            <p id="tagline" className="text-white leading-none tracking-widest font-bold text-[1.4vw] pt-3 pl-2 font-[Dancing_script]">
-              Timeless Design. Rooted in Aesthetic Intelligence.
-            </p>
+            {/* Animated Text */}
+            <div className="zoom-text absolute h-full w-full flex items-center justify-center flex-col text-center leading-none opacity-0 z-100">
+              <a href="">
+                <h2 id="about-head" className="text-white text-[5vw] leading-none font-black font-[Familjen_Grotesk]">
+                  AAKAAR
+                </h2>
+              </a>
+              <p id="tagline" className="text-white leading-none tracking-widest font-bold text-[1.4vw] pt-3 pl-2 font-[Dancing_script]">
+                Timeless Design. Rooted in Aesthetic Intelligence.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* About founder section */}
       <div id="about" className="abhiman min-h-screen w-full bg-[#100905] flex justify-center items-center overflow-hidden mt-0 md:mt-[-10rem]">
@@ -358,6 +344,7 @@ function About() {
                   className="w-full h-full object-cover object-center saturate-60"
                   src={main}
                   alt="Abhiman image"
+                  loading="lazy"
                 />
               </div>
 
@@ -423,6 +410,7 @@ function About() {
                   className="w-full h-full object-cover object-center saturate-70"
                   src={main}
                   alt="Abhiman image"
+                  loading="lazy"
                 />
               </div>
 
@@ -488,7 +476,7 @@ function About() {
                     <span className="meet-the-letter">H</span>
                     <span className="meet-the-letter">E</span>
                   </div>
-                  <div className="founder-part leading-none pl-12 font-[Roboto_flex] font-extrabold whitespace-nowrap z-40">
+                  <div className="founder-part leading-none pl-12 font-[Roboto_flex] font-extrabold whitespace-nowrap ">
                     <span className="founder-letter">F</span>
                     <span className="founder-letter">O</span>
                     <span className="founder-letter">U</span>
@@ -504,6 +492,7 @@ function About() {
                     style={{ objectFit: "cover", objectPosition: "bottom" }}
                     src={main}
                     alt="Abhiman image"
+                    loading="lazy"
                   />
                 </div>
               </div>

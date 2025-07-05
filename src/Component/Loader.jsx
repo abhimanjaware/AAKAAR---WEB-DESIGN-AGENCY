@@ -13,67 +13,60 @@ function Loader() {
     height: typeof window !== 'undefined' ? window.innerHeight : 0
   });
 
-  // Detect mobile device
+  // Device detection with performance optimization
   const isMobile = useMemo(() => {
-    return typeof window !== 'undefined' && (
-      window.innerWidth <= 768 || 
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    );
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= 768 || 
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }, []);
 
   // Check if loader should show (only once per session)
   useEffect(() => {
-    // Use regular storage check without try-catch since we're not in artifact restrictions
-    const hasShownLoader = sessionStorage?.getItem('loaderShown');
+    if (typeof sessionStorage === 'undefined') return;
+    const hasShownLoader = sessionStorage.getItem('loaderShown');
     if (!hasShownLoader) {
       setShouldShowLoader(true);
-      sessionStorage?.setItem('loaderShown', 'true');
+      sessionStorage.setItem('loaderShown', 'true');
     }
   }, []);
 
-  // Optimized resize handler with RAF throttling
+  // Throttled resize handler
   const handleResize = useCallback(() => {
-    const newSize = {
-      width: window.innerWidth,
-      height: window.innerHeight
-    };
-    setWindowSize(newSize);
+    if (typeof window === 'undefined') return;
     
-    // Update vh variable
-    const vh = newSize.height * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
+    const updateSize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+      
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(updateSize);
+    } else {
+      updateSize();
+    }
   }, []);
 
   useEffect(() => {
-    if (!shouldShowLoader) return;
+    if (!shouldShowLoader || typeof window === 'undefined') return;
 
-    let rafId;
-    let isScheduled = false;
-
-    const throttledResize = () => {
-      if (!isScheduled) {
-        rafId = requestAnimationFrame(() => {
-          handleResize();
-          isScheduled = false;
-        });
-        isScheduled = true;
-      }
-    };
-
-    window.addEventListener('resize', throttledResize, { passive: true });
-    handleResize(); // Initial call
+    window.addEventListener('resize', handleResize, { passive: true });
+    handleResize();
 
     return () => {
-      window.removeEventListener('resize', throttledResize);
-      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', handleResize);
     };
   }, [shouldShowLoader, handleResize]);
 
-  // Optimized body scroll lock
+  // Body scroll lock with memory optimization
   useEffect(() => {
-    if (!shouldShowLoader) return;
+    if (!shouldShowLoader || typeof document === 'undefined') return;
 
-    // Load font more efficiently
+    // Load font without blocking
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Notable&display=swap';
     link.rel = 'stylesheet';
@@ -84,45 +77,40 @@ function Loader() {
     const body = document.body;
     const html = document.documentElement;
     
-    // Store original styles
-    const originalStyles = {
-      bodyOverflow: body.style.overflow,
-      bodyPosition: body.style.position,
-      bodyTop: body.style.top,
-      bodyWidth: body.style.width,
-      bodyHeight: body.style.height,
-      htmlOverflow: html.style.overflow
-    };
-    
-    // More efficient style application
-    const bodyStyle = body.style;
-    bodyStyle.overflow = 'hidden';
-    bodyStyle.position = 'fixed';
-    bodyStyle.top = `-${scrollY}px`;
-    bodyStyle.width = '100%';
-    bodyStyle.height = '100%';
+    // Store original styles for restoration
+    const originalBodyOverflow = body.style.overflow;
+    const originalBodyPosition = body.style.position;
+    const originalBodyTop = body.style.top;
+    const originalHtmlOverflow = html.style.overflow;
+
+    // Apply scroll lock
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
     html.style.overflow = 'hidden';
     
     return () => {
-      link.remove();
-      // Restore original styles
-      bodyStyle.overflow = originalStyles.bodyOverflow;
-      bodyStyle.position = originalStyles.bodyPosition;
-      bodyStyle.top = originalStyles.bodyTop;
-      bodyStyle.width = originalStyles.bodyWidth;
-      bodyStyle.height = originalStyles.bodyHeight;
-      html.style.overflow = originalStyles.htmlOverflow;
+      // Cleanup
+      if (link.parentNode === document.head) {
+        document.head.removeChild(link);
+      }
+      
+      // Restore styles
+      body.style.overflow = originalBodyOverflow;
+      body.style.position = originalBodyPosition;
+      body.style.top = originalBodyTop;
+      html.style.overflow = originalHtmlOverflow;
       window.scrollTo(0, scrollY);
     };
   }, [shouldShowLoader]);
   
-  // Optimized percentage counter with RAF
+  // Percentage counter with optimized timing
   useEffect(() => {
     if (!shouldShowLoader) return;
 
     let animationId;
     let startTime = null;
-    const totalDuration = 4000;
+    const totalDuration = isMobile ? 2500 : 3500; // Faster on mobile
     
     const updateCounter = (timestamp) => {
       if (!startTime) startTime = timestamp;
@@ -146,9 +134,9 @@ function Loader() {
     return () => {
       if (animationId) cancelAnimationFrame(animationId);
     };
-  }, [shouldShowLoader]);
+  }, [shouldShowLoader, isMobile]);
 
-  // Optimized strip positions - reduced for mobile
+  // Optimized strip positions with reduced elements on mobile
   const stripPositions = useMemo(() => {
     const positions = [
       "top-1/2", "bottom-1/3", "top-1/3", "bottom-1/6", "top-1/6", 
@@ -156,19 +144,22 @@ function Loader() {
       "-top-1/3", "-bottom-1/2", "-top-1/2", "-bottom-2/3", "-top-2/3", 
       "-bottom-5/6", "-top-5/6", "-bottom-full", "-top-full"
     ];
-    // Reduce strips on mobile for better performance
-    return isMobile ? positions.slice(0, 12) : positions;
+    return isMobile ? positions.slice(0, 10) : positions;
   }, [isMobile]);
 
-  // Optimized loading text component
+  // Memoized loading text component with reduced elements on mobile
   const LoadingTextDisplay = useMemo(() => React.memo(({ isInverted = false }) => {
     const containerClass = isInverted ? "loader-movingtext-invert" : "loader-movingtext";
-    const textCount = isMobile ? 8 : 15; // Reduce text elements on mobile
+    const textCount = isMobile ? 8 : 15;
     
     return (
       <div className={containerClass}>
         {Array.from({ length: textCount }, (_, i) => (
-          <span key={i} className="text-black/85 text-[15px] font-black px-2 tracking-wide">
+          <span 
+            key={i} 
+            className="text-black/85 text-[12px] font-black px-2 tracking-wide"
+            style={{ willChange: 'transform' }}
+          >
             LOADING
           </span>
         ))}
@@ -180,37 +171,46 @@ function Loader() {
   useGSAP(() => {
     if (!shouldShowLoader) return;
 
-    // Optimize GSAP config for mobile
+    // Optimize GSAP for performance
     gsap.config({
-      force3D: true, // Enable hardware acceleration
+      force3D: true,
       autoSleep: 60,
-      nullTargetWarn: false
+      nullTargetWarn: false,
+      autoKill: true
     });
 
-    const tl = gsap.timeline();
+    // Use will-change for critical elements
+    gsap.set([".strip1", ".strip2", ".web-horizontal", ".web-vertical", ".web-slantright", ".web-slantleft"], {
+      willChange: isMobile ? 'opacity' : 'transform, opacity'
+    });
+
+    const tl = gsap.timeline({
+      defaults: { ease: "power2.out" }
+    });
     
     // Initial strip animations
     tl.fromTo([".strip1", ".strip2"], {
       width: 0,
     }, {
-      width: isMobile ? "200vw" : "2900px", // Responsive width
-      duration: 1,
-      ease: "expo.in",
+      width: isMobile ? "180vw" : "2900px",
+      duration: 0.8,
+      ease: "power2.inOut",
     });
 
-    // Optimized strip animations with responsive sizes
+    // Main strip animations
     const stripAnimations = [
-      { selector: '.web-horizontal', width: isMobile ? "200vw" : "2900px" },
+      { selector: '.web-horizontal', width: isMobile ? "180vw" : "2900px" },
       { selector: '.web-vertical', width: "100vh" },
-      { selector: '.web-slantright', width: isMobile ? "150vw" : "2500px" },
-      { selector: '.web-slantleft', width: isMobile ? "150vw" : "2500px" }
+      { selector: '.web-slantright', width: isMobile ? "140vw" : "2500px" },
+      { selector: '.web-slantleft', width: isMobile ? "140vw" : "2500px" }
     ];
     
     stripAnimations.forEach(({ selector, width }) => {
       tl.fromTo(selector, { width: 0 }, { 
         width, 
-        ease: 'circ.in', 
-        stagger: 0.05 
+        duration: 0.8,
+        ease: 'power2.inOut', 
+        stagger: 0.03 
       }, 'z');
     });
     
@@ -229,7 +229,7 @@ function Loader() {
     movementAnimations.forEach(({ selector, from, to }) => {
       tl.fromTo(selector, from, { 
         ...to, 
-        duration: 1, 
+        duration: 0.8, 
         ease: "power2.out" 
       }, "x");
     });
@@ -241,50 +241,51 @@ function Loader() {
     }, {
       scale: 1,
       opacity: 1,
-      duration: 0.5,
-      ease: "power2.out"
+      duration: 0.6,
+      ease: "back.out(1.7)"
     }, "-=0.5");
 
-    // Optimized text animations with different speeds for mobile
-    const textAnimations = [
-      { selector: ".loader-movingtext", x: "-100%", duration: isMobile ? 60 : 90 },
-      { selector: ".loader-movingtext-invert", x: "100%", duration: isMobile ? 60 : 90 },
-      { selector: ".strip-text-animation", x: "-100%", duration: isMobile ? 30 : 40 },
-      { selector: ".strip-text-animation-reverse", x: "100%", duration: isMobile ? 30 : 40 }
-    ];
-    
-    textAnimations.forEach(({ selector, x, duration }) => {
-      gsap.to(selector, {
-        x,
-        duration,
-        repeat: -1,
-        ease: "none",
-        delay: selector.includes('strip') ? 0 : 1,
-        immediateRender: true
+    // Text animations (only if not mobile)
+    if (!isMobile) {
+      const textAnimations = [
+        { selector: ".loader-movingtext", x: "-100%", duration: 90 },
+        { selector: ".loader-movingtext-invert", x: "100%", duration: 90 },
+        { selector: ".strip-text-animation", x: "-100%", duration: 40 },
+        { selector: ".strip-text-animation-reverse", x: "100%", duration: 40 }
+      ];
+      
+      textAnimations.forEach(({ selector, x, duration }) => {
+        gsap.to(selector, {
+          x,
+          duration,
+          repeat: -1,
+          ease: "none",
+          delay: selector.includes('strip') ? 0 : 1
+        });
       });
-    });
+    }
   }, [shouldShowLoader, isMobile]);
 
   // Beam color change animation
   useGSAP(() => {
     if (beamColor === "white" && shouldShowLoader) {
-      const tl = gsap.timeline();
-      
-      tl.to(".beam-circle", {
+      gsap.to(".beam-circle", {
         backgroundColor: "#ffffff",
         boxShadow: "0 0 20px rgba(255, 255, 255, 0.8)",
         duration: 0.8,
         ease: "power2.inOut"
-      })
-      .to(".counter-number", {
+      });
+      
+      gsap.to(".counter-number", {
         opacity: 0,
         duration: 0.5,
-        ease: "power2.out"
-      }, 0.3);
+        ease: "power2.out",
+        delay: 0.3
+      });
     }
   }, [beamColor, shouldShowLoader]);
 
-  // Exit animation
+  // Exit animation with mobile optimizations
   useGSAP(() => {
     if (startOutAnimation && shouldShowLoader) {
       const outTl = gsap.timeline({
@@ -303,47 +304,47 @@ function Loader() {
       outAnimations.forEach(({ selector, props }) => {
         outTl.to(selector, {
           ...props,
-          duration: 1.2,
+          duration: 1,
           ease: "power3.in",
-          stagger: 0.05
+          stagger: 0.03
         }, 0);
       });
       
       outTl.to(".beam-circle", {
-        scale: 1.5,
+        scale: 1.2,
         duration: 0.2,
         ease: "power1.in"
       })
       .to(".beam-circle", {
-        scale: isMobile ? 30 : 50, // Smaller scale on mobile
-        duration: 0.4,
-        ease: "power4.in"
+        scale: isMobile ? 25 : 50,
+        duration: 0.5,
+        ease: "power2.in"
       })
       .to(".loader-content", {
         backgroundColor: "#ffffff",
-        duration: 0.3,
-        ease: "power4.in"
-      }, "-=0.3")
+        duration: 0.4,
+        ease: "power2.in"
+      }, "-=0.4")
       .to(".main-loader", {
         opacity: 0,
-        duration: 0.4,
+        duration: 0.5,
         ease: "power2.inOut"
       });
     }
   }, [startOutAnimation, shouldShowLoader, isMobile]);
 
-  // Calculate responsive sizes
+  // Responsive sizes with performance in mind
   const beamSize = useMemo(() => {
-    const baseSize = Math.min(windowSize.width, windowSize.height) * (isMobile ? 0.25 : 0.3);
+    const baseSize = Math.min(windowSize.width, windowSize.height) * 0.3;
     return {
-      width: Math.max(80, Math.min(baseSize, isMobile ? 150 : 200)),
-      height: Math.max(80, Math.min(baseSize, isMobile ? 150 : 200))
+      width: Math.max(80, Math.min(baseSize, isMobile ? 140 : 200)),
+      height: Math.max(80, Math.min(baseSize, isMobile ? 140 : 200))
     };
   }, [windowSize, isMobile]);
 
   const fontSize = useMemo(() => {
-    const baseSize = Math.min(windowSize.width, windowSize.height) * (isMobile ? 0.06 : 0.08);
-    return Math.max(16, Math.min(baseSize, isMobile ? 24 : 32));
+    const baseSize = Math.min(windowSize.width, windowSize.height) * 0.07;
+    return Math.max(18, Math.min(baseSize, isMobile ? 22 : 32));
   }, [windowSize, isMobile]);
 
   if (!shouldShowLoader) {
@@ -357,12 +358,13 @@ function Loader() {
         height: 'calc(var(--vh, 1vh) * 100)',
         touchAction: 'none',
         overscrollBehavior: 'none',
-        willChange: 'transform, opacity'
+        willChange: 'opacity',
+        backfaceVisibility: 'hidden'
       }}
     >
       <div className="loader-content h-full w-full bg-black overflow-hidden relative">
         <div className="loader-allStrips h-full w-full">
-          {/* Enhanced Centered Beam Circle */}
+          {/* Centered Beam Circle */}
           <div 
             className="beam-circle absolute bg-black rounded-full z-50 flex items-center justify-center"
             style={{
@@ -371,7 +373,8 @@ function Loader() {
               left: '50%',
               top: '50%',
               transform: 'translate(-50%, -50%)',
-              willChange: 'transform, background-color'
+              willChange: 'transform, background-color',
+              transformStyle: 'preserve-3d'
             }}
           >
             <div 
@@ -381,7 +384,8 @@ function Loader() {
                 letterSpacing: '1px',
                 willChange: 'opacity',
                 fontSize: `${fontSize}px`,
-                lineHeight: 1
+                lineHeight: 1,
+                transform: 'translateZ(0)'
               }}
             >
               {percentage}%
@@ -392,29 +396,47 @@ function Loader() {
             {stripPositions.map((position, index) => (
               <React.Fragment key={index}>
                 <div 
-                  className={`strip1 h-4 w-[200vw] bg-[#070304] absolute ${position} rotate-45 overflow-hidden`}
-                  style={{ willChange: 'width, opacity' }}
+                  className={`strip1 h-4 w-[180vw] bg-[#070304] absolute ${position} rotate-45 overflow-hidden`}
+                  style={{ 
+                    willChange: isMobile ? 'opacity' : 'width, opacity',
+                    transform: 'translateZ(0)'
+                  }}
                 >
-                  <div className="strip-text-animation whitespace-nowrap absolute w-[200%] left-0">
-                    {Array.from({ length: isMobile ? 15 : 25 }, (_, i) => (
-                      <span key={i} className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block">
-                        LOADING
-                      </span>
-                    ))}
-                  </div>
+                  {!isMobile && (
+                    <div className="strip-text-animation whitespace-nowrap absolute w-[200%] left-0">
+                      {Array.from({ length: 20 }, (_, i) => (
+                        <span 
+                          key={i} 
+                          className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block"
+                          style={{ willChange: 'transform' }}
+                        >
+                          LOADING
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 <div 
-                  className={`strip2 h-4 w-[200vw] bg-[#070304] absolute ${position} -rotate-45 overflow-hidden`}
-                  style={{ willChange: 'width, opacity' }}
+                  className={`strip2 h-4 w-[180vw] bg-[#070304] absolute ${position} -rotate-45 overflow-hidden`}
+                  style={{ 
+                    willChange: isMobile ? 'opacity' : 'width, opacity',
+                    transform: 'translateZ(0)'
+                  }}
                 >
-                  <div className="strip-text-animation-reverse whitespace-nowrap absolute w-[200%] left-0">
-                    {Array.from({ length: isMobile ? 15 : 25 }, (_, i) => (
-                      <span key={i} className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block">
-                        LOADING
-                      </span>
-                    ))}
-                  </div>
+                  {!isMobile && (
+                    <div className="strip-text-animation-reverse whitespace-nowrap absolute w-[200%] left-0">
+                      {Array.from({ length: 20 }, (_, i) => (
+                        <span 
+                          key={i} 
+                          className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block"
+                          style={{ willChange: 'transform' }}
+                        >
+                          LOADING
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </React.Fragment>
             ))}
@@ -423,7 +445,10 @@ function Loader() {
           <div className="webstrips flex justify-center">
             <div 
               className="web-vertical h-5 w-[100vh] flex absolute rotate-90 overflow-hidden top-1/2 left-1/2 -translate-x-1/2"
-              style={{ willChange: 'width, height, opacity' }}
+              style={{ 
+                willChange: isMobile ? 'opacity' : 'width, height, opacity',
+                transform: 'translateZ(0)'
+              }}
             >
               <div className="web-vertical-1 h-full w-full bg-gradient-to-r from-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden">
                 <LoadingTextDisplay />
@@ -436,8 +461,9 @@ function Loader() {
             <div 
               className="web-horizontal h-5 flex absolute top-1/2 overflow-hidden"
               style={{ 
-                width: isMobile ? '200vw' : '2000px',
-                willChange: 'width, opacity' 
+                width: isMobile ? '180vw' : '2000px',
+                willChange: isMobile ? 'opacity' : 'width, opacity',
+                transform: 'translateZ(0)'
               }}
             >
               <div className="web-horizontal-1 h-full w-full bg-gradient-to-r from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-start overflow-hidden">
@@ -458,8 +484,9 @@ function Loader() {
                 key={index} 
                 className={`${className} h-5 flex absolute top-1/2 ${rotation}`}
                 style={{ 
-                  width: isMobile ? '150vw' : '100vw',
-                  willChange: 'width, opacity' 
+                  width: isMobile ? '140vw' : '100vw',
+                  willChange: isMobile ? 'opacity' : 'width, opacity',
+                  transform: 'translateZ(0)'
                 }}
               >
                 <div className={`${className}-1 h-full w-full bg-gradient-to-r from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden`}>

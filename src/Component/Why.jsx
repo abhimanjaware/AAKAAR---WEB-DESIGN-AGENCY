@@ -7,6 +7,7 @@ function Why() {
   const headerRef = useRef(null);
   const cardRefs = useRef([]);
   const [screenType, setScreenType] = useState('desktop');
+  const [activeCard, setActiveCard] = useState(0);
 
   useEffect(() => {
     const checkScreen = () => {
@@ -22,6 +23,11 @@ function Why() {
   }, []);
 
   useEffect(() => {
+    // Only apply heavy animations on desktop and tablet
+    if (screenType === 'mobile') {
+      return; // Skip all GSAP animations on mobile
+    }
+
     gsap.registerPlugin(ScrollTrigger);
     const ctx = gsap.context(() => {
       if (!sectionRef.current || !headerRef.current) return;
@@ -88,17 +94,24 @@ function Why() {
       ctx.revert();
       ScrollTrigger.getAll().forEach(st => st.kill());
     };
-  }, []);
+  }, [screenType]);
+
+  // Mobile touch handlers for simple card navigation
+  const handleCardClick = (index) => {
+    if (screenType === 'mobile') {
+      setActiveCard(index);
+    }
+  };
 
   const titles = ['Clarity', 'Speed', 'Focus', 'Expertise'];
 
   const desktopDescriptions = [
     [
-      "We guide you through every stage of the journey—from strategy and design to launch and beyond—while giving you complete transparency into our workflow. You’ll always know what we’re working on, why we’re doing it, and how it’s progressing.",
+      "We guide you through every stage of the journey—from strategy and design to launch and beyond—while giving you complete transparency into our workflow. You'll always know what we're working on, why we're doing it, and how it's progressing.",
       "We take the time to deeply understand your brand, your goals, and your audience. This ensures that every decision—from creative direction to technical execution"
     ],
     [
-      "Our team works with speed and discipline, ensuring consistent progress without ever compromising on quality. Every milestone is met with care, precision, and a clear sense of momentum—so you’re never left waiting or wondering",
+      "Our team works with speed and discipline, ensuring consistent progress without ever compromising on quality. Every milestone is met with care, precision, and a clear sense of momentum—so you're never left waiting or wondering",
       " Our approach is designed to achieve the highest possible results in the shortest timeframe—so you get value quickly and effectively."
     ],
     [
@@ -107,7 +120,7 @@ function Why() {
     ],
     [
       "With deep expertise in the latest design tools, technologies, and industry trends, we bring a level of proficiency that ensures your brand stays ahead of the curve—both visually and functionally.",
-      "This foundation allows us to craft clean, modern, and highly strategic solutions—tailored to your brand’s goals, optimized for performance, and designed to leave a lasting impression."
+      "This foundation allows us to craft clean, modern, and highly strategic solutions—tailored to your brand's goals, optimized for performance, and designed to leave a lasting impression."
     ]
   ];
 
@@ -120,7 +133,7 @@ function Why() {
     ],
     [
       "We deliver rapid results while maintaining the highest standards of quality, ensuring you get the best without delay.",
-      "You’ll see swift and clear outcomes, designed to meet your goals with precision."
+      "You'll see swift and clear outcomes, designed to meet your goals with precision."
     ],
     [
       "We eliminate unnecessary distractions and focus entirely on what matters, ensuring that every decision and action is aligned with your goals and vision for the project.",
@@ -137,6 +150,80 @@ function Why() {
     screenType === 'tablet' ? tabletDescriptions :
     desktopDescriptions;
 
+  // Mobile-specific render
+  if (screenType === 'mobile') {
+    return (
+      <div className="my-8">
+        <div className="why-content min-h-screen w-full" ref={sectionRef}>
+          <div className="why-header w-full px-4 py-12 leading-none text-center" ref={headerRef}>
+            <h3 className='text-2xl pb-4 text-[#D9D9D9] font-[Roboto_Flex] font-black tracking-wide leading-none'>
+              WHY TO CHOOSE AAKAAR?
+            </h3>
+            <span className='text-zinc-400 font-[Dancing_Script] text-xl leading-none block'>
+              " Rooted in design. Focused on growth. Driven by impact. "
+            </span>
+          </div>
+
+          <div className="why-cardsection px-4 w-full">
+            {/* Mobile card navigation dots */}
+            <div className="flex justify-center mb-6 gap-2">
+              {titles.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleCardClick(i)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    activeCard === i ? 'bg-white' : 'bg-zinc-600'
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Mobile cards - simple stack without heavy animations */}
+            <div className="cards-stack relative w-full max-w-[900px] mx-auto">
+              {titles.map((title, i) => (
+                <div
+                  key={i}
+                  ref={el => (cardRefs.current[i] = el)}
+                  className={`card w-full bg-[#27170e] rounded-lg flex flex-col items-center justify-center shadow-xl px-4 overflow-hidden transition-all duration-500 ease-out ${
+                    activeCard === i 
+                      ? 'opacity-100 transform translate-y-0 relative z-10' 
+                      : 'opacity-0 transform translate-y-4 absolute top-0 left-0 z-0'
+                  }`}
+                  style={{ minHeight: '70vh' }}
+                >
+                  <img
+                    className="h-full w-full object-cover object-center opacity-5 rounded-lg absolute"
+                    src="https://i.pinimg.com/236x/9a/98/55/9a985577ce4ee066cdd7071a628b2fa3.jpg"
+                    alt="bg"
+                    loading="lazy"
+                  />
+                  <div className="clarity-dets text-white h-full flex flex-col items-start justify-start z-10 px-4 py-18 gap-6">
+                    <h5 className='font-[Tangerine] text-[#bababa] text-[5rem] leading-none'>
+                      {`0${i + 1}.`}
+                    </h5>
+                    <div className="s1-info text-start">
+                      <h5 className='text-4xl font-bold font-[Dancing_Script] py-4'>
+                        {title}
+                      </h5>
+                      <div>
+                        {descriptions[i].map((para, idx) => (
+                          <p key={idx} className='font-[Familjen_Grotesk] text-zinc-300 text-[19px] pb-4 leading-snug'>
+                            {para}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop and tablet render (with full animations)
   return (
     <div className="my-8">
       <div className="why-content min-h-screen w-full overflow-hidden" ref={sectionRef}>
