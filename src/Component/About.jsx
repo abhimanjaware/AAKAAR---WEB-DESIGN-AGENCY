@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, useMemo, useCallback } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import c1 from "../assets/images/ChatGPT Image Apr 27, 2025, 01_36_57 PM.png";
@@ -44,7 +44,7 @@ function About() {
     return false;
   }, []);
 
-  const setupZoomAnimation = () => {
+  const setupZoomAnimation = useCallback(() => {
     if (isMobile) return;
 
     const centerBox = document.querySelector(".center-box");
@@ -106,16 +106,17 @@ function About() {
       }, 0.8);
     }
 
+    animationRefs.current.push(tl);
     return tl;
-  };
+  }, [isMobile]);
 
-  const setupFounderAnimation = () => {
+  const setupFounderAnimation = useCallback(() => {
     const mobileElements = [
       ...document.querySelectorAll(".mobile-title, .mobile-image, .mobile-paragraph, .abhiman-mail-mobile, .abhiman-connect-mobile")
     ].filter(Boolean);
 
     if (mobileElements.length > 0) {
-      gsap.from(mobileElements, {
+      const tl = gsap.from(mobileElements, {
         opacity: 0,
         y: 30,
         duration: 0.6,
@@ -123,10 +124,11 @@ function About() {
         ease: "power2.out",
         scrollTrigger: {
           trigger: ".founder-section",
-          start: "top 85%",
+          start: "top 75%",
           toggleActions: "play none none none"
         }
       });
+      animationRefs.current.push(tl);
     }
 
     if (isMobile) return;
@@ -194,8 +196,9 @@ function About() {
       ease: "power2.out"
     }, "-=0.2");
 
+    animationRefs.current.push(tl);
     return tl;
-  };
+  }, [isMobile]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -208,7 +211,7 @@ function About() {
       ].map(sel => document.querySelector(sel)).filter(Boolean);
 
       if (textElements.length > 0) {
-        gsap.fromTo(textElements, {
+        const tl = gsap.fromTo(textElements, {
           opacity: 0,
           y: 40
         }, {
@@ -219,23 +222,28 @@ function About() {
           ease: "power3.out",
           scrollTrigger: {
             trigger: "#about-anime",
-            start: "top 85%",
+            start: isMobile ? "top 90%" : "top 85%",
             end: "bottom top",
             toggleActions: "play none none none"
           }
         });
+        animationRefs.current.push(tl);
       }
 
       setupFounderAnimation();
-      setupZoomAnimation();
+      if (!isMobile) {
+        setupZoomAnimation();
+      }
     }, componentRef.current);
 
     return () => {
+      const currentAnimationRefs = [...animationRefs.current];
       ctx.revert();
-      animationRefs.current.forEach(anim => anim?.kill());
+      currentAnimationRefs.forEach(anim => anim?.kill());
       ScrollTrigger.getAll().forEach(st => st.kill());
+      animationRefs.current = [];
     };
-  }, []);
+  }, [isMobile, setupFounderAnimation, setupZoomAnimation]);
 
   return (
     <div ref={componentRef} className="about bg-[#1e110a] overflow-x-hidden">
@@ -300,8 +308,8 @@ function About() {
         <div className="founder-section w-full h-auto min-h-screen flex justify-center items-center pt-12 md:pt-18 lg:pt-42 relative">
           
           {/* Mobile layout */}
-          <div className="md:hidden min-h-screen w-full">
-            <div className="mobile-founder-container w-full flex flex-col items-start px-5 justify-start relative">
+          <div className="block md:hidden min-h-screen w-full">
+            <div className="mobile-founder-container w-full flex flex-col items-start px-5 justify-start relative pt-12">
               <div className="mobile-title text-[#D9D9D9] text-start pb-2 w-full z-10">
                 <h2 className="text-[14vw] leading-none font-[Roboto_flex] font-extrabold">
                   MEET THE
