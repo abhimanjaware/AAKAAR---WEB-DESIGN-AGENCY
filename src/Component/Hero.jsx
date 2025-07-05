@@ -15,6 +15,16 @@ export default function Hero() {
   const containerRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Force preload the image early
+  useEffect(() => {
+    const preloadLink = document.createElement("link");
+    preloadLink.rel = "preload";
+    preloadLink.as = "image";
+    preloadLink.href = window.innerWidth < 768 ? mobim : deskim;
+    preloadLink.type = "image/png";
+    document.head.appendChild(preloadLink);
+  }, []);
+
   const checkMobile = useCallback(() => {
     setIsMobile(window.innerWidth < 768);
   }, []);
@@ -26,159 +36,159 @@ export default function Hero() {
   }, [checkMobile]);
 
   useGSAP(() => {
-    if (!isMobile) {
-      // === DESKTOP ANIMATIONS ONLY ===
-      gsap.set([imageRef.current, ctaRef.current], {
-        opacity: 0,
-        clearProps: "transform"
+    if (isMobile) return;
+
+    // DESKTOP animations only
+    gsap.set([imageRef.current, ctaRef.current], {
+      opacity: 0,
+      clearProps: "transform"
+    });
+
+    gsap.set(imageRef.current, {
+      scale: 1.08,
+      y: 15
+    });
+
+    gsap.set(ctaRef.current, {
+      y: 50
+    });
+
+    const tl = gsap.timeline();
+    tl.to(imageRef.current, {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      duration: 1.6,
+      ease: "power2.out"
+    }).to(ctaRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 1.2,
+      ease: "back.out(1.7)"
+    }, "-=0.8");
+
+    gsap.fromTo(frameRef.current, {
+      scale: 0.4,
+      y: -600
+    }, {
+      scale: 1,
+      y: 100,
+      scrollTrigger: {
+        trigger: heroRef.current,
+        start: "top top",
+        end: "50% top",
+        scrub: 1,
+        invalidateOnRefresh: true
+      }
+    });
+
+    const breathingTween = gsap.to(imageRef.current, {
+      scale: 1.02,
+      duration: 8,
+      ease: "sine.inOut",
+      repeat: -1,
+      yoyo: true
+    });
+
+    let mouseX = 0, mouseY = 0, lastX = 0, lastY = 0;
+    let animationId = null;
+    let rect = null;
+
+    const updateRect = () => {
+      if (containerRef.current) rect = containerRef.current.getBoundingClientRect();
+    };
+
+    const handleMouseMove = (e) => {
+      if (!rect) updateRect();
+      const intensity = 15;
+      mouseX = (((e.clientX - rect.left) / rect.width) - 0.5) * intensity;
+      mouseY = (((e.clientY - rect.top) / rect.height) - 0.5) * intensity;
+      if (!animationId) animationId = requestAnimationFrame(updateElements);
+    };
+
+    const updateElements = () => {
+      lastX += (mouseX - lastX) * 0.06;
+      lastY += (mouseY - lastY) * 0.06;
+
+      gsap.to(imageRef.current, {
+        x: lastX * 1.2,
+        y: lastY * 1.2,
+        rotationY: lastX * 0.03,
+        rotationX: -lastY * 0.03,
+        duration: 0.2,
+        ease: "power1.out",
+        overwrite: "auto"
       });
 
-      gsap.set(imageRef.current, {
-        scale: 1.08,
-        y: 15
+      gsap.to(ctaRef.current, {
+        x: lastX * 0.4,
+        y: lastY * 0.4,
+        duration: 0.2,
+        ease: "power1.out",
+        overwrite: "auto"
       });
 
-      gsap.set(ctaRef.current, {
-        y: 50
+      animationId = null;
+      if (Math.abs(mouseX - lastX) > 0.01 || Math.abs(mouseY - lastY) > 0.01) {
+        animationId = requestAnimationFrame(updateElements);
+      }
+    };
+
+    const handleMouseEnter = () => {
+      breathingTween.pause();
+      gsap.to(imageRef.current, { scale: 1.09, duration: 0.8, overwrite: "auto" });
+    };
+
+    const handleMouseLeave = () => {
+      gsap.to(imageRef.current, {
+        scale: 1.09,
+        duration: 5,
+        onComplete: () => breathingTween.play()
       });
 
-      const tl = gsap.timeline();
-      tl.to(imageRef.current, {
-        opacity: 1,
-        scale: 1,
+      gsap.to([imageRef.current, ctaRef.current], {
+        x: 0,
         y: 0,
-        duration: 1.6,
-        ease: "power2.out"
-      }).to(ctaRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 1.2,
-        ease: "back.out(1.7)"
-      }, "-=0.8");
-
-      gsap.fromTo(frameRef.current, {
-        scale: 0.4,
-        y: -600
-      }, {
-        scale: 1,
-        y: 100,
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: "top top",
-          end: "50% top",
-          scrub: 1,
-          invalidateOnRefresh: true
-        }
+        rotationX: 0,
+        rotationY: 0,
+        duration: 1.4,
+        ease: "power2.inOut"
       });
+    };
 
-      const breathingTween = gsap.to(imageRef.current, {
-        scale: 1.02,
-        duration: 8,
-        ease: "sine.inOut",
-        repeat: -1,
-        yoyo: true
-      });
+    const handleResize = () => {
+      updateRect();
+      ScrollTrigger.refresh();
+    };
 
-      let mouseX = 0, mouseY = 0, lastX = 0, lastY = 0;
-      let animationId = null;
-      let rect = null;
+    containerRef.current?.addEventListener('mousemove', handleMouseMove);
+    containerRef.current?.addEventListener('mouseenter', handleMouseEnter);
+    containerRef.current?.addEventListener('mouseleave', handleMouseLeave);
+    window.addEventListener('resize', handleResize);
 
-      const updateRect = () => {
-        if (containerRef.current) rect = containerRef.current.getBoundingClientRect();
-      };
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      containerRef.current?.removeEventListener('mousemove', handleMouseMove);
+      containerRef.current?.removeEventListener('mouseenter', handleMouseEnter);
+      containerRef.current?.removeEventListener('mouseleave', handleMouseLeave);
 
-      const handleMouseMove = (e) => {
-        if (!rect) updateRect();
-
-        const intensity = 15;
-        mouseX = (((e.clientX - rect.left) / rect.width) - 0.5) * intensity;
-        mouseY = (((e.clientY - rect.top) / rect.height) - 0.5) * intensity;
-
-        if (!animationId) animationId = requestAnimationFrame(updateElements);
-      };
-
-      const updateElements = () => {
-        lastX += (mouseX - lastX) * 0.06;
-        lastY += (mouseY - lastY) * 0.06;
-
-        gsap.to(imageRef.current, {
-          x: lastX * 1.2,
-          y: lastY * 1.2,
-          rotationY: lastX * 0.03,
-          rotationX: -lastY * 0.03,
-          duration: 0.2,
-          ease: "power1.out",
-          overwrite: "auto"
-        });
-
-        gsap.to(ctaRef.current, {
-          x: lastX * 0.4,
-          y: lastY * 0.4,
-          duration: 0.2,
-          ease: "power1.out",
-          overwrite: "auto"
-        });
-
-        animationId = null;
-        if (Math.abs(mouseX - lastX) > 0.01 || Math.abs(mouseY - lastY) > 0.01) {
-          animationId = requestAnimationFrame(updateElements);
-        }
-      };
-
-      const handleMouseEnter = () => {
-        breathingTween.pause();
-        gsap.to(imageRef.current, { scale: 1.09, duration: 0.8, overwrite: "auto" });
-      };
-
-      const handleMouseLeave = () => {
-        gsap.to(imageRef.current, {
-          scale: 1.09,
-          duration: 5,
-          onComplete: () => breathingTween.play()
-        });
-
-        gsap.to([imageRef.current, ctaRef.current], {
-          x: 0,
-          y: 0,
-          rotationX: 0,
-          rotationY: 0,
-          duration: 1.4,
-          ease: "power2.inOut"
-        });
-      };
-
-      const handleResize = () => {
-        updateRect();
-        ScrollTrigger.refresh();
-      };
-
-      containerRef.current?.addEventListener('mousemove', handleMouseMove);
-      containerRef.current?.addEventListener('mouseenter', handleMouseEnter);
-      containerRef.current?.addEventListener('mouseleave', handleMouseLeave);
-      window.addEventListener('resize', handleResize);
-
-      return () => {
-        window.removeEventListener('resize', handleResize);
-        containerRef.current?.removeEventListener('mousemove', handleMouseMove);
-        containerRef.current?.removeEventListener('mouseenter', handleMouseEnter);
-        containerRef.current?.removeEventListener('mouseleave', handleMouseLeave);
-
-        if (animationId) cancelAnimationFrame(animationId);
-        gsap.killTweensOf([imageRef.current, ctaRef.current]);
-        breathingTween.kill();
-      };
-    }
+      if (animationId) cancelAnimationFrame(animationId);
+      gsap.killTweensOf([imageRef.current, ctaRef.current]);
+      breathingTween.kill();
+    };
   }, [isMobile]);
 
   return (
     <div ref={heroRef} className="relative w-full">
       <div ref={containerRef} className="hero bg-[#100905] h-screen w-full overflow-hidden">
         <div className="relative h-screen w-full">
-          {/* Hero Background Image */}
+          {/* Static Hero Image */}
           <div
             ref={imageRef}
             className="absolute inset-0 h-[110%] w-[110%] -left-[5%] -top-[5%] z-0"
-            style={{ perspective: isMobile ? 'none' : '1000px' }}
+            style={{
+              perspective: isMobile ? 'none' : '1000px'
+            }}
           >
             <img
               src={isMobile ? mobim : deskim}
@@ -188,10 +198,10 @@ export default function Hero() {
               fetchpriority="high"
               decoding="async"
               style={{
+                transform: isMobile ? 'none' : 'translateZ(0)',
+                willChange: isMobile ? 'auto' : 'transform',
                 backfaceVisibility: 'hidden',
                 WebkitBackfaceVisibility: 'hidden',
-                willChange: isMobile ? 'auto' : 'transform',
-                transform: 'translateZ(0)',
                 filter: isMobile ? 'none' : 'drop-shadow(10px 10px #555)'
               }}
             />
