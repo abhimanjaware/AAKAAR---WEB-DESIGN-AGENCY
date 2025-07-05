@@ -10,74 +10,48 @@ function About() {
   const componentRef = useRef(null);
   const animationRefs = useRef([]);
 
-  // Memoized data for about paragraphs
+  const boxesData = useMemo(() => [
+    {
+      position: "w-[30%] h-[90vh] absolute top-[50%] translate-y-[-50%] left-0 sm:w-[40%] md:w-[35%] lg:w-[30%]",
+      imgSrc: "https://i.pinimg.com/736x/32/04/a0/3204a0923c23d27a651420c8407e585d.jpg",
+      isCenter: false,
+    },
+    {
+      position: "w-[30%] h-[90vh] absolute top-[50%] left-[50%] -translate-y-[50%] -translate-x-[50%] z-50 sm:w-[50%] md:w-[45%] lg:w-[35%]",
+      imgSrc: c1,
+      isCenter: true,
+    },
+    {
+      position: "w-[30%] h-[90vh] absolute top-[50%] translate-y-[-50%] right-0 sm:w-[40%] md:w-[35%] lg:w-[30%]",
+      imgSrc: "https://i.pinimg.com/736x/6e/74/34/6e74348f55ed5379f8df0e2e37a4f0d7.jpg",
+      isCenter: false,
+    },
+  ], []);
+
   const aboutParagraphs = useMemo(() => [
     <span key="p1" className="font-black text-start text-white">
       I'm Abhiman Jaware, The founder of <span className="capitalize"><a href="">aakaar.digital.</a></span>
     </span>,
     "a premium web design studio based in Nashik. With a refined eye for aesthetics and a passion for handcrafted code.",
     "We create websites that do more than look good — they perform. We design digital experiences that boost your online presence.",
-    "Every brand has a story, and we bring it to life through clean code, timeless visuals, and thoughtful interaction.We specialize in web design and development for clients who care about details. Our goal is to create high-end web experiences that make your brand go from a 'ordinary' to a 'premium'."
+    "Every brand has a story, and we bring it to life through clean code, timeless visuals, and thoughtful interaction. We specialize in web design and development for clients who care about details. Our goal is to create high-end web experiences that make your brand go from a 'ordinary' to a 'premium'."
   ], []);
 
-  // Enhanced mobile-friendly text animation
-  const setupTextAnimation = () => {
-    const isMobile = window.innerWidth < 768;
-    const selectors = ['#craft p', '#out p', '#webs p', '#leave p', '#impression p'];
-    const elements = selectors.map(sel => document.querySelector(sel)).filter(Boolean);
-    
-    if (elements.length === 0) return;
+  const isMobile = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  }, []);
 
-    // Mobile-specific adjustments
-    const mobileOffsets = isMobile ? {
-      craft: { startX: -10, endX: 20 },
-      out: { startX: 30, endX: 10 },
-      webs: { startY: -10, endX: 40 },
-      leave: { startX: 10, endX: -10 },
-      impression: { startX: 40, endX: -40 }
-    } : {
-      craft: { startX: -30, endX: 50 },
-      out: { startX: 80, endX: 20 },
-      webs: { startY: -25, endX: 100 },
-      leave: { startX: 30, endX: -20 },
-      impression: { startX: 100, endX: -100 }
-    };
-
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: "#about-anime",
-        start: "top bottom",
-        end: "bottom top",
-        scrub: isMobile ? 1.2 : 1.5,
-        markers: false,
-      }
-    });
-
-    tl.fromTo(elements[0], 
-      { x: mobileOffsets.craft.startX, opacity: 0.8 }, 
-      { x: mobileOffsets.craft.endX, opacity: 1, ease: "sine.out" }, 0)
-      .fromTo(elements[1], 
-        { x: mobileOffsets.out.startX, y: isMobile ? 0 : -10, opacity: 0.8 }, 
-        { x: mobileOffsets.out.endX, y: isMobile ? 0 : -10, opacity: 1, ease: "sine.out" }, 0)
-      .fromTo(elements[2], 
-        { y: mobileOffsets.webs.startY, opacity: 0.8 }, 
-        { x: mobileOffsets.webs.endX, y: isMobile ? 0 : -25, opacity: 1, ease: "sine.out" }, 0)
-      .fromTo(elements[3], 
-        { x: mobileOffsets.leave.startX, y: isMobile ? 0 : -25, opacity: 0.8 }, 
-        { x: mobileOffsets.leave.endX, y: isMobile ? 0 : -25, opacity: 1, ease: "sine.out" }, 0)
-      .fromTo(elements[4], 
-        { x: mobileOffsets.impression.startX, y: isMobile ? 0 : -25, opacity: 0.8 }, 
-        { x: mobileOffsets.impression.endX, y: isMobile ? 0 : -25, opacity: 1, ease: "sine.out" }, 0);
-
-    return tl;
-  };
-
-  // Desktop zoom animation
   const setupZoomAnimation = () => {
+    if (isMobile) return;
+
     const centerBox = document.querySelector(".center-box");
     const others = document.querySelectorAll(".leftup-img:not(.center-box)");
     const textElements = document.querySelectorAll(".zoom-text");
     const tagline = document.querySelectorAll("#tagline");
+    const agencySection = document.querySelector(".agency-section");
 
     if (!centerBox) return;
 
@@ -123,74 +97,40 @@ function About() {
       zIndex: 100,
     }, 0.35);
 
+    if (agencySection) {
+      tl.to(agencySection, {
+        opacity: 1,
+        y: 0,
+        ease: "power2.out",
+        duration: 1,
+      }, 0.8);
+    }
+
     return tl;
   };
 
-  // Founder animation for both mobile and desktop
   const setupFounderAnimation = () => {
-    const isMobile = window.innerWidth < 768;
-    
-    if (isMobile) {
-      const mobileElements = {
-        container: document.querySelector(".mobile-founder-container"),
-        title: document.querySelector(".mobile-title"),
-        image: document.querySelector(".mobile-image"),
-        paragraphs: document.querySelectorAll(".mobile-paragraph"),
-        mail: document.querySelector(".abhiman-mail-mobile"),
-        connect: document.querySelector(".abhiman-connect-mobile")
-      };
+    const mobileElements = [
+      ...document.querySelectorAll(".mobile-title, .mobile-image, .mobile-paragraph, .abhiman-mail-mobile, .abhiman-connect-mobile")
+    ].filter(Boolean);
 
-      // Early return if elements not found
-      if (!mobileElements.container) return;
-
-      // Set initial states with mobile-specific values
-      gsap.set(mobileElements.title, { opacity: 0, y: 10 });
-      gsap.set(mobileElements.image, { opacity: 0, y: 15, scale: 0.95 });
-      gsap.set(mobileElements.paragraphs, { opacity: 0, y: 10 });
-      gsap.set([mobileElements.mail, mobileElements.connect], { opacity: 0, y: 5 });
-
-      // Create timeline with mobile-optimized settings
-      const tl = gsap.timeline({
+    if (mobileElements.length > 0) {
+      gsap.from(mobileElements, {
+        opacity: 0,
+        y: 30,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power2.out",
         scrollTrigger: {
           trigger: ".founder-section",
           start: "top 85%",
-          toggleActions: "play none none none",
-          markers: false
+          toggleActions: "play none none none"
         }
       });
-
-      // Smoother mobile animations
-      tl.to(mobileElements.title, {
-        opacity: 1,
-        y: 0,
-        duration: 0.5,
-        ease: "power2.out"
-      })
-      .to(mobileElements.image, {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.6,
-        ease: "power2.out"
-      }, "-=0.1")
-      .to(mobileElements.paragraphs, {
-        opacity: 1,
-        y: 0,
-        stagger: 0.06,
-        duration: 0.4,
-        ease: "power2.out"
-      }, "-=0.1")
-      .to([mobileElements.mail, mobileElements.connect], {
-        opacity: 1,
-        y: 0,
-        duration: 0.25,
-        ease: "power2.out"
-      }, "-=0.05");
-
-      return tl;
     }
 
-    // Desktop animations
+    if (isMobile) return;
+
     const elements = {
       meetTheLetters: document.querySelectorAll(".meet-the-letter"),
       founderLetters: document.querySelectorAll(".founder-letter"),
@@ -200,21 +140,21 @@ function About() {
       connect: document.querySelector(".abhiman-connect")
     };
 
-    gsap.set([elements.meetTheLetters, elements.founderLetters], { 
-      opacity: 0, 
-      y: 50,
-      rotationY: 90 
-    });
-    gsap.set([elements.abhimanImg, elements.paragraphs, elements.mail, elements.connect], { 
+    gsap.set([elements.meetTheLetters, elements.founderLetters], {
       opacity: 0,
-      y: 20 
+      y: 50,
+      rotationY: 90
+    });
+    gsap.set([elements.abhimanImg, elements.paragraphs, elements.mail, elements.connect], {
+      opacity: 0,
+      y: 20
     });
 
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: ".founder-section",
         start: "top 60%",
-        toggleActions: "play none none none",
+        toggleActions: "play none none none"
       }
     });
 
@@ -224,7 +164,7 @@ function About() {
       y: 0,
       duration: 0.6,
       stagger: 0.05,
-      ease: "back.out(1.2)",
+      ease: "back.out(1.2)"
     })
     .to(elements.founderLetters, {
       opacity: 1,
@@ -232,44 +172,62 @@ function About() {
       y: 0,
       duration: 0.6,
       stagger: 0.05,
-      ease: "back.out(1.2)",
+      ease: "back.out(1.2)"
     }, "-=0.3")
     .to(elements.abhimanImg, {
       opacity: 1,
       y: 0,
       duration: 0.5,
-      ease: "power2.out",
+      ease: "power2.out"
     }, "-=0.4")
     .to(elements.paragraphs, {
       opacity: 1,
       y: 0,
       stagger: 0.1,
       duration: 0.4,
-      ease: "power2.out",
+      ease: "power2.out"
     }, "-=0.3")
     .to([elements.mail, elements.connect], {
       opacity: 1,
       y: 0,
       duration: 0.3,
-      ease: "power2.out",
+      ease: "power2.out"
     }, "-=0.2");
 
     return tl;
   };
 
-  // Setup all animations
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const textTl = setupTextAnimation();
-      const founderTl = setupFounderAnimation();
+      const textElements = [
+        "#craft p",
+        "#out p",
+        "#webs p",
+        "#leave p",
+        "#impression p"
+      ].map(sel => document.querySelector(sel)).filter(Boolean);
 
-      animationRefs.current = [textTl, founderTl];
-      
-      // Only setup zoom animation on desktop
-      if (window.innerWidth >= 1024) {
-        const zoomTl = setupZoomAnimation();
-        animationRefs.current.push(zoomTl);
+      if (textElements.length > 0) {
+        gsap.fromTo(textElements, {
+          opacity: 0,
+          y: 40
+        }, {
+          opacity: 1,
+          y: 0,
+          stagger: 0.2,
+          duration: 0.7,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: "#about-anime",
+            start: "top 85%",
+            end: "bottom top",
+            toggleActions: "play none none none"
+          }
+        });
       }
+
+      setupFounderAnimation();
+      setupZoomAnimation();
     }, componentRef.current);
 
     return () => {
@@ -281,7 +239,7 @@ function About() {
 
   return (
     <div ref={componentRef} className="about bg-[#1e110a] overflow-x-hidden">
-      {/* Entry Screen - Mobile Optimized */}
+      {/* Entry Screen */}
       <div className="about-moving bg-[#1e110a] h-fit md:h-[100vh] text-center">
         <div className='aakar-head w-full h-fit pt-16 flex flex-col items-center justify-center text-center leading-normal' />
         
@@ -290,10 +248,10 @@ function About() {
             <p className="whitespace-nowrap text-[13vw] pl-2 lg:text-[7vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none">CRAFTING</p>
           </div>
           <div className="w-full" id="out">
-            <p className="whitespace-nowrap text-[21vw] lg:text-[11.5vw] tracking-normal font-[Tangerine] leading-none text-start pl-[3rem] lg:pl-[17rem] mt-[-50px] md:mt-[-50px]">Outstanding</p>
+            <p className="whitespace-nowrap text-[21vw] lg:text-[11.5vw] tracking-normal font-[Tangerine] leading-none text-start pl-[3rem] lg:pl-[17rem] mt-[-50px]">Outstanding</p>
           </div>
           <div id="webs">
-            <p className="whitespace-nowrap text-[12.5vw] lg:text-[6vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-end pr-[4rem] md:pr-[18rem]">WEBSITES</p>
+            <p className="whitespace-nowrap text-[12.5vw] lg:text-[6vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-end pr-[18rem]">WEBSITES</p>
           </div>
           <div id="leave">
             <p className="whitespace-nowrap text-[12vw] lg:text-[7vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-center">THAT LEAVES A</p>
@@ -304,83 +262,70 @@ function About() {
         </div>
       </div>
 
-      {/* Scroll Section - Desktop Only */}
-      <div className="about-wrapper overflow-hidden min-h-[400vh] relative hidden lg:block">
-        <div className="about-content h-screen w-full relative z-10">
-          {[
-            {
-              position: "w-[30%] h-[90vh] absolute top-[50%] translate-y-[-50%] left-0 sm:w-[40%] md:w-[35%] lg:w-[30%]",
-              imgSrc: "https://i.pinimg.com/736x/32/04/a0/3204a0923c23d27a651420c8407e585d.jpg",
-              isCenter: false,
-            },
-            {
-              position: "w-[30%] h-[90vh] absolute top-[50%] left-[50%] -translate-y-[50%] -translate-x-[50%] z-50 sm:w-[50%] md:w-[45%] lg:w-[35%]",
-              imgSrc: c1,
-              isCenter: true,
-            },
-            {
-              position: "w-[30%] h-[90vh] absolute top-[50%] translate-y-[-50%] right-0 sm:w-[40%] md:w-[35%] lg:w-[30%]",
-              imgSrc: "https://i.pinimg.com/736x/6e/74/34/6e74348f55ed5379f8df0e2e37a4f0d7.jpg",
-              isCenter: false,
-            },
-          ].map((box, index) => (
-            <div
-              key={index}
-              className={`leftup-img ${box.position} ${box.isCenter ? 'center-box' : ''} overflow-hidden flex items-center justify-center`}
-            >
-              <img
-                className="w-full h-full object-cover"
-                src={box.imgSrc}
-                alt={`Box image ${index}`}
-                loading={index === 0 ? "eager" : "lazy"}
-              />
-            </div>
-          ))}
+      {/* Scroll Section - Hidden on mobile */}
+      {!isMobile && (
+        <div className="about-wrapper overflow-hidden min-h-[400vh] relative hidden lg:block">
+          <div className="about-content h-screen w-full relative z-10">
+            {boxesData.map((box, index) => (
+              <div
+                key={index}
+                className={`leftup-img ${box.position} ${box.isCenter ? 'center-box' : ''} overflow-hidden flex items-center justify-center`}
+              >
+                <img
+                  className="w-full h-full object-cover"
+                  src={box.imgSrc}
+                  alt={`Box image ${index}`}
+                  loading={index === 0 ? "eager" : "lazy"}
+                />
+              </div>
+            ))}
 
-          {/* Animated Text */}
-          <div className="zoom-text absolute h-full w-full flex items-center justify-center flex-col text-center leading-none opacity-0 z-100">
-            <a href="">
-              <h2 id="about-head" className="text-white text-[5vw] leading-none font-black font-[Familjen_Grotesk]">
-                AAKAAR
-              </h2>
-            </a>
-            <p id="tagline" className="text-white leading-none tracking-widest font-bold text-[1.4vw] pt-3 pl-2 font-[Dancing_script]">
-              Timeless Design. Rooted in Aesthetic Intelligence.
-            </p>
+            {/* Animated Text */}
+            <div className="zoom-text absolute h-full w-full flex items-center justify-center flex-col text-center leading-none opacity-0 z-100">
+              <a href="">
+                <h2 id="about-head" className="text-white text-[5vw] leading-none font-black font-[Familjen_Grotesk]">
+                  AAKAAR
+                </h2>
+              </a>
+              <p id="tagline" className="text-white leading-none tracking-widest font-bold text-[1.4vw] pt-3 pl-2 font-[Dancing_script]">
+                Timeless Design. Rooted in Aesthetic Intelligence.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* About founder section - Enhanced Mobile Layout */}
+      {/* About founder section */}
       <div id="about" className="abhiman min-h-screen w-full bg-[#100905] flex justify-center items-center overflow-hidden mt-0 md:mt-[-10rem]">
         <div className="founder-section w-full h-auto min-h-screen flex justify-center items-center pt-12 md:pt-18 lg:pt-42 relative">
           
-          {/* Enhanced Mobile layout */}
+          {/* Mobile layout */}
           <div className="md:hidden min-h-screen w-full">
-            <div className="mobile-founder-container w-full flex flex-col items-start px-5 justify-start relative pt-8">
+            <div className="mobile-founder-container w-full flex flex-col items-start px-5 justify-start relative">
               <div className="mobile-title text-[#D9D9D9] text-start pb-2 w-full z-10">
                 <h2 className="text-[14vw] leading-none font-[Roboto_flex] font-extrabold">
                   MEET THE
-                  <h2 className="text-[15vw] leading-none pl-6 sm:pl-10">FOUNDER</h2>
+                  <h2 className="text-[15vw] leading-none pl-10">FOUNDER</h2>
                 </h2>
               </div>
 
-              <div className="mobile-image w-[85%] sm:w-[60%] h-[40vh] sm:h-[50vh] overflow-hidden relative mt-4 mx-auto">
+              <div className="mobile-image w-[85%] sm:w-[60%] h-[50vh] sm:h-[50vh] overflow-hidden relative mt-4">
                 <img
                   className="w-full h-full object-cover object-center saturate-60"
                   src={main}
                   alt="Abhiman image"
+                  loading="lazy"
                 />
               </div>
 
-              <div className="mobile-text-content w-full pt-6 text-white/90 text-[16px] sm:text-lg font-normal leading-relaxed capitalize font-[Familjen_Grotesk] text-left px-4">
+              <div className="mobile-text-content w-[95%] pt-4 text-white/90 text-[19px] sm:text-lg font-normal leading-relaxed capitalize font-[Familjen_Grotesk] text-left">
                 {aboutParagraphs.map((paragraph, index) => (
-                  <p key={index} className="mobile-paragraph leading-tight mb-4 sm:mb-4">
+                  <p key={index} className="mobile-paragraph leading-tight mb-3 sm:mb-4">
                     {paragraph}
                   </p>
                 ))}
 
-                <div className="mobile-contact py-4">
+                <div className="mobile-contact py-2">
                   <div className="abhiman-mail-mobile flex items-center gap-2 sm:gap-3 justify-start mb-4">
                     <ion-icon name="mail-outline" />
                     <div className="mail py-2 sm:py-3 text-base sm:text-lg leading-none text-white font-normal text-left">
@@ -435,6 +380,7 @@ function About() {
                   className="w-full h-full object-cover object-center saturate-70"
                   src={main}
                   alt="Abhiman image"
+                  loading="lazy"
                 />
               </div>
 
@@ -516,6 +462,7 @@ function About() {
                     style={{ objectFit: "cover", objectPosition: "bottom" }}
                     src={main}
                     alt="Abhiman image"
+                    loading="lazy"
                   />
                 </div>
               </div>
