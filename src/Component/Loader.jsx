@@ -14,6 +14,7 @@ function Loader() {
   });
 
   // Device detection with performance optimization
+  // eslint-disable-next-line no-unused-vars
   const isMobile = useMemo(() => {
     if (typeof window === 'undefined') return false;
     return window.innerWidth <= 768 || 

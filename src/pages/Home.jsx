@@ -36,7 +36,6 @@ function Home() {
 
           <About />
 
-          {/* <Showcase/>  */}
 
           {/* <Projects /> */}
 
@@ -47,6 +46,7 @@ function Home() {
           <Footer />
         </div>
       )}
+      {/* <Showcase/>  */}
       {/* <Button/>
 
       {/* <Counter/> */}

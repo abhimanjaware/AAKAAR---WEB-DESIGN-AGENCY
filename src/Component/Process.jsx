@@ -171,7 +171,7 @@ function Process() {
   };
 
   return (
-    <div className='bg-[#D9D9D9] w-full pt-36'>
+    <div className='bg-[#D9D9D9] w-full '>
       <div className="min-h-screen w-full">
         <div className="w-full pt-8 text-center px-4 md:px-0" ref={headerRef}>
           <h3 ref={headerTitleRef} className='text-[2rem] md:text-[3rem] leading-tight text-[#27170e] font-black'>

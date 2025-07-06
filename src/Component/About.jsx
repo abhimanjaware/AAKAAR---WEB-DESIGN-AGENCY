@@ -2,13 +2,13 @@ import React, { useEffect, useRef, useMemo, useCallback } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import c1 from "../assets/images/ChatGPT Image Apr 27, 2025, 01_36_57 PM.png";
-import main from "../assets/images/abhimanmain.jpg";
+import mainImage from "../assets/images/abhimanmain.jpg";
 
 gsap.registerPlugin(ScrollTrigger);
 
 function About() {
   const componentRef = useRef(null);
-  const animationRefs = useRef([]);
+  const animationContext = useRef(null);
 
   const boxesData = useMemo(() => [
     {
@@ -38,170 +38,17 @@ function About() {
   ], []);
 
   const isMobile = useMemo(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth < 768;
-    }
-    return false;
+    return typeof window !== 'undefined' ? window.innerWidth < 768 : false;
   }, []);
 
-  const setupZoomAnimation = useCallback(() => {
-    if (isMobile) return;
-
-    const centerBox = document.querySelector(".center-box");
-    const others = document.querySelectorAll(".leftup-img:not(.center-box)");
-    const textElements = document.querySelectorAll(".zoom-text");
-    const tagline = document.querySelectorAll("#tagline");
-    const agencySection = document.querySelector(".agency-section");
-
-    if (!centerBox) return;
-
-    const { width: boxWidth, height: boxHeight } = centerBox.getBoundingClientRect();
-    const scaleX = window.innerWidth / boxWidth;
-    const scaleY = window.innerHeight / boxHeight;
-    const finalScale = Math.max(scaleX, scaleY);
-
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: ".about-wrapper",
-        start: "top top",
-        end: "+=300%",
-        scrub: 2.3,
-        pin: ".about-content",
-        anticipatePin: 1,
-      },
-    });
-
-    tl.to(centerBox, {
-      scale: finalScale,
-      filter: "blur(12px)",
-      ease: "linear",
-      transformOrigin: "center center",
-      zIndex: 50,
-    }, 0)
-    .to(others, {
-      opacity: 0,
-      scale: 0.85,
-      ease: "linear",
-    }, 0)
-    .to(textElements, {
-      opacity: 1,
-      y: 0,
-      ease: "power2.out",
-      stagger: 3,
-      zIndex: 100,
-    }, 0.2)
-    .to(tagline, {
-      opacity: 1,
-      y: 0,
-      ease: "power2.out",
-      zIndex: 100,
-    }, 0.35);
-
-    if (agencySection) {
-      tl.to(agencySection, {
-        opacity: 1,
-        y: 0,
-        ease: "power2.out",
-        duration: 1,
-      }, 0.8);
+  const setupAnimations = useCallback(() => {
+    // Clear previous animations
+    if (animationContext.current) {
+      animationContext.current.revert();
     }
 
-    animationRefs.current.push(tl);
-    return tl;
-  }, [isMobile]);
-
-  const setupFounderAnimation = useCallback(() => {
-    const mobileElements = [
-      ...document.querySelectorAll(".mobile-title, .mobile-image, .mobile-paragraph, .abhiman-mail-mobile, .abhiman-connect-mobile")
-    ].filter(Boolean);
-
-    if (mobileElements.length > 0) {
-      const tl = gsap.from(mobileElements, {
-        opacity: 0,
-        y: 30,
-        duration: 0.6,
-        stagger: 0.1,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: ".founder-section",
-          start: "top 75%",
-          toggleActions: "play none none none"
-        }
-      });
-      animationRefs.current.push(tl);
-    }
-
-    if (isMobile) return;
-
-    const elements = {
-      meetTheLetters: document.querySelectorAll(".meet-the-letter"),
-      founderLetters: document.querySelectorAll(".founder-letter"),
-      abhimanImg: document.querySelector(".abhiman-image img"),
-      paragraphs: document.querySelectorAll(".about-paragraph"),
-      mail: document.querySelector(".abhiman-mail"),
-      connect: document.querySelector(".abhiman-connect")
-    };
-
-    gsap.set([elements.meetTheLetters, elements.founderLetters], {
-      opacity: 0,
-      y: 50,
-      rotationY: 90
-    });
-    gsap.set([elements.abhimanImg, elements.paragraphs, elements.mail, elements.connect], {
-      opacity: 0,
-      y: 20
-    });
-
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: ".founder-section",
-        start: "top 60%",
-        toggleActions: "play none none none"
-      }
-    });
-
-    tl.to(elements.meetTheLetters, {
-      opacity: 1,
-      rotationY: 0,
-      y: 0,
-      duration: 0.6,
-      stagger: 0.05,
-      ease: "back.out(1.2)"
-    })
-    .to(elements.founderLetters, {
-      opacity: 1,
-      rotationY: 0,
-      y: 0,
-      duration: 0.6,
-      stagger: 0.05,
-      ease: "back.out(1.2)"
-    }, "-=0.3")
-    .to(elements.abhimanImg, {
-      opacity: 1,
-      y: 0,
-      duration: 0.5,
-      ease: "power2.out"
-    }, "-=0.4")
-    .to(elements.paragraphs, {
-      opacity: 1,
-      y: 0,
-      stagger: 0.1,
-      duration: 0.4,
-      ease: "power2.out"
-    }, "-=0.3")
-    .to([elements.mail, elements.connect], {
-      opacity: 1,
-      y: 0,
-      duration: 0.3,
-      ease: "power2.out"
-    }, "-=0.2");
-
-    animationRefs.current.push(tl);
-    return tl;
-  }, [isMobile]);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
+    animationContext.current = gsap.context(() => {
+      // Initial text animations
       const textElements = [
         "#craft p",
         "#out p",
@@ -211,7 +58,7 @@ function About() {
       ].map(sel => document.querySelector(sel)).filter(Boolean);
 
       if (textElements.length > 0) {
-        const tl = gsap.fromTo(textElements, {
+        gsap.fromTo(textElements, {
           opacity: 0,
           y: 40
         }, {
@@ -227,23 +74,162 @@ function About() {
             toggleActions: "play none none none"
           }
         });
-        animationRefs.current.push(tl);
       }
 
-      setupFounderAnimation();
+      // Mobile founder animation
+      const mobileElements = [
+        ...document.querySelectorAll(".mobile-title, .mobile-image, .mobile-paragraph, .abhiman-mail-mobile, .abhiman-connect-mobile")
+      ].filter(Boolean);
+
+      if (mobileElements.length > 0) {
+        gsap.from(mobileElements, {
+          opacity: 0,
+          y: 30,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: ".founder-section",
+            start: "top 75%",
+            toggleActions: "play none none none"
+          }
+        });
+      }
+
+      // Desktop animations
       if (!isMobile) {
-        setupZoomAnimation();
+        // Zoom animation
+        const centerBox = document.querySelector(".center-box");
+        if (centerBox) {
+          const { width: boxWidth, height: boxHeight } = centerBox.getBoundingClientRect();
+          const scaleX = window.innerWidth / boxWidth;
+          const scaleY = window.innerHeight / boxHeight;
+          const finalScale = Math.max(scaleX, scaleY);
+
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: ".about-wrapper",
+              start: "top top",
+              end: "+=300%",
+              scrub: 2.3,
+              pin: ".about-content",
+              anticipatePin: 1,
+            },
+          });
+
+          tl.to(centerBox, {
+            scale: finalScale,
+            filter: "blur(12px)",
+            ease: "linear",
+            transformOrigin: "center center",
+            zIndex: 50,
+          }, 0)
+          .to(".leftup-img:not(.center-box)", {
+            opacity: 0,
+            scale: 0.85,
+            ease: "linear",
+          }, 0)
+          .to(".zoom-text", {
+            opacity: 1,
+            y: 0,
+            ease: "power2.out",
+            stagger: 3,
+            zIndex: 100,
+          }, 0.2)
+          .to("#tagline", {
+            opacity: 1,
+            y: 0,
+            ease: "power2.out",
+            zIndex: 100,
+          }, 0.35);
+        }
+
+        // Desktop founder animation
+        const elements = {
+          meetTheLetters: document.querySelectorAll(".meet-the-letter"),
+          founderLetters: document.querySelectorAll(".founder-letter"),
+          abhimanImg: document.querySelector(".abhiman-image img"),
+          paragraphs: document.querySelectorAll(".about-paragraph"),
+          mail: document.querySelector(".abhiman-mail"),
+          connect: document.querySelector(".abhiman-connect")
+        };
+
+        if (elements.meetTheLetters.length > 0) {
+          gsap.set([elements.meetTheLetters, elements.founderLetters], {
+            opacity: 0,
+            y: 50,
+            rotationY: 90
+          });
+          gsap.set([elements.abhimanImg, elements.paragraphs, elements.mail, elements.connect], {
+            opacity: 0,
+            y: 20
+          });
+
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: ".founder-section",
+              start: "top 60%",
+              toggleActions: "play none none none"
+            }
+          });
+
+          tl.to(elements.meetTheLetters, {
+            opacity: 1,
+            rotationY: 0,
+            y: 0,
+            duration: 0.6,
+            stagger: 0.05,
+            ease: "back.out(1.2)"
+          })
+          .to(elements.founderLetters, {
+            opacity: 1,
+            rotationY: 0,
+            y: 0,
+            duration: 0.6,
+            stagger: 0.05,
+            ease: "back.out(1.2)"
+          }, "-=0.3")
+          .to(elements.abhimanImg, {
+            opacity: 1,
+            y: 0,
+            duration: 0.5,
+            ease: "power2.out"
+          }, "-=0.4")
+          .to(elements.paragraphs, {
+            opacity: 1,
+            y: 0,
+            stagger: 0.1,
+            duration: 0.4,
+            ease: "power2.out"
+          }, "-=0.3")
+          .to([elements.mail, elements.connect], {
+            opacity: 1,
+            y: 0,
+            duration: 0.3,
+            ease: "power2.out"
+          }, "-=0.2");
+        }
       }
     }, componentRef.current);
+  }, [isMobile]);
 
-    return () => {
-      const currentAnimationRefs = [...animationRefs.current];
-      ctx.revert();
-      currentAnimationRefs.forEach(anim => anim?.kill());
-      ScrollTrigger.getAll().forEach(st => st.kill());
-      animationRefs.current = [];
+  useEffect(() => {
+    setupAnimations();
+
+    const handleResize = () => {
+      setupAnimations();
     };
-  }, [isMobile, setupFounderAnimation, setupZoomAnimation]);
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      if (animationContext.current) {
+        animationContext.current.revert();
+      }
+      window.removeEventListener('resize', handleResize);
+      ScrollTrigger.getAll().forEach(st => st.kill());
+      gsap.killTweensOf("*");
+    };
+  }, [setupAnimations]);
 
   return (
     <div ref={componentRef} className="about bg-[#1e110a] overflow-x-hidden">
@@ -320,7 +306,7 @@ function About() {
               <div className="mobile-image w-[85%] sm:w-[60%] h-[50vh] sm:h-[50vh] overflow-hidden relative mt-4">
                 <img
                   className="w-full h-full object-cover object-center saturate-60"
-                  src={main}
+                  src={mainImage}
                   alt="Abhiman image"
                   loading="lazy"
                 />
@@ -386,7 +372,7 @@ function About() {
               <div className="tablet-image w-[60%] h-[58vh] overflow-hidden my-6 mt-[28vw] relative">
                 <img
                   className="w-full h-full object-cover object-center saturate-70"
-                  src={main}
+                  src={mainImage}
                   alt="Abhiman image"
                   loading="lazy"
                 />
@@ -468,7 +454,7 @@ function About() {
                   <img
                     className="w-full saturate-70 h-full"
                     style={{ objectFit: "cover", objectPosition: "bottom" }}
-                    src={main}
+                    src={mainImage}
                     alt="Abhiman image"
                     loading="lazy"
                   />
