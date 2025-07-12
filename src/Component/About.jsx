@@ -82,18 +82,20 @@ function About() {
       ].filter(Boolean);
 
       if (mobileElements.length > 0) {
-        gsap.from(mobileElements, {
-          opacity: 0,
-          y: 30,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: ".founder-section",
-            start: "top 75%",
-            toggleActions: "play none none none"
-          }
-        });
+       gsap.from(mobileElements, {
+  opacity: 0,
+  y: 30,
+  duration: 0.6,
+  stagger: 0.1,
+  ease: "power2.out",
+  scrollTrigger: {
+    trigger: ".founder-section",
+    start: "top 75%",
+    toggleActions: "play none none none",
+    once: true, // <- This line makes the animation run only once
+  }
+});
+
       }
 
       // Desktop animations

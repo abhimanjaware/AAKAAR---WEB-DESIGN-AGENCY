@@ -13,45 +13,67 @@ export default function Hero() {
   const imageRef = useRef(null);
   const ctaRef = useRef(null);
   const containerRef = useRef(null);
-  const [isMobile, setIsMobile] = useState(false);
 
-  // Force preload the image early
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [isSlow, setIsSlow] = useState(false);
+
+  const checkDevice = useCallback(() => {
+    const width = window.innerWidth;
+    setIsMobile(width < 768);
+    setIsTablet(width >= 768 && width < 1024);
+
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (conn && ['slow-2g', '2g', '3g'].includes(conn.effectiveType)) {
+      setIsSlow(true);
+    } else {
+      setIsSlow(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkDevice();
+    window.addEventListener("resize", checkDevice);
+    return () => window.removeEventListener("resize", checkDevice);
+  }, [checkDevice]);
+
   useEffect(() => {
     const preloadLink = document.createElement("link");
     preloadLink.rel = "preload";
     preloadLink.as = "image";
-    preloadLink.href = window.innerWidth < 768 ? mobim : deskim;
+    preloadLink.href = isMobile ? mobim : deskim;
     preloadLink.type = "image/png";
     document.head.appendChild(preloadLink);
-  }, []);
-
-  const checkMobile = useCallback(() => {
-    setIsMobile(window.innerWidth < 768);
-  }, []);
-
-  useEffect(() => {
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, [checkMobile]);
+  }, [isMobile]);
 
   useGSAP(() => {
-    if (isMobile) return;
+    if (isMobile || isSlow) return;
 
-    // DESKTOP animations only
+    if (isTablet) {
+      gsap.set([imageRef.current, ctaRef.current], { opacity: 0 });
+      gsap.timeline()
+        .to(imageRef.current, {
+          opacity: 1,
+          scale: 1,
+          duration: 1.2,
+          ease: "power1.out"
+        })
+        .to(ctaRef.current, {
+          opacity: 1,
+          duration: 0.8,
+          ease: "power1.out"
+        }, "-=0.6");
+
+      return;
+    }
+
     gsap.set([imageRef.current, ctaRef.current], {
       opacity: 0,
       clearProps: "transform"
     });
 
-    gsap.set(imageRef.current, {
-      scale: 1.08,
-      y: 15
-    });
-
-    gsap.set(ctaRef.current, {
-      y: 50
-    });
+    gsap.set(imageRef.current, { scale: 1.08, y: 15 });
+    gsap.set(ctaRef.current, { y: 50 });
 
     const tl = gsap.timeline();
     tl.to(imageRef.current, {
@@ -171,31 +193,27 @@ export default function Hero() {
       containerRef.current?.removeEventListener('mousemove', handleMouseMove);
       containerRef.current?.removeEventListener('mouseenter', handleMouseEnter);
       containerRef.current?.removeEventListener('mouseleave', handleMouseLeave);
-
       if (animationId) cancelAnimationFrame(animationId);
       gsap.killTweensOf([imageRef.current, ctaRef.current]);
       breathingTween.kill();
     };
-  }, [isMobile]);
+  }, [isMobile, isTablet, isSlow]);
 
   return (
     <div ref={heroRef} className="relative w-full">
       <div ref={containerRef} className="hero bg-[#100905] h-screen w-full overflow-hidden">
         <div className="relative h-screen w-full">
-          {/* Static Hero Image */}
           <div
             ref={imageRef}
             className="absolute inset-0 h-[110%] w-[110%] -left-[5%] -top-[5%] z-0"
-            style={{
-              perspective: isMobile ? 'none' : '1000px'
-            }}
+            style={{ perspective: isMobile ? 'none' : '1000px' }}
           >
             <img
               src={isMobile ? mobim : deskim}
               alt="Hero background"
               className="h-full w-full object-cover object-center"
-              loading="eager"
-              fetchpriority="high"
+              loading={isMobile || isSlow ? "lazy" : "eager"}
+              fetchpriority={isMobile || isSlow ? "low" : "high"}
               decoding="async"
               style={{
                 transform: isMobile ? 'none' : 'translateZ(0)',
@@ -205,6 +223,13 @@ export default function Hero() {
                 filter: isMobile ? 'none' : 'drop-shadow(10px 10px #555)'
               }}
             />
+            <noscript>
+              <img
+                src={deskim}
+                alt="Static fallback"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </noscript>
           </div>
 
           {/* CTA Button */}
