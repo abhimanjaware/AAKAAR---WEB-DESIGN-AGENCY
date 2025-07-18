@@ -1,267 +1,166 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
-import { useGSAP } from "@gsap/react";
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import deskim from "../assets/images/hero-desk.png";
 import mobim from "../assets/images/hero-mob.webp";
 
-gsap.registerPlugin(ScrollTrigger);
-
 export default function Hero() {
   const heroRef = useRef(null);
-  const frameRef = useRef(null);
-  const imageRef = useRef(null);
-  const ctaRef = useRef(null);
-  const containerRef = useRef(null);
-
   const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
-  const [isSlow, setIsSlow] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [isIntersecting, setIsIntersecting] = useState(false);
 
+  // Debounced resize handler
   const checkDevice = useCallback(() => {
     const width = window.innerWidth;
     setIsMobile(width < 768);
-    setIsTablet(width >= 768 && width < 1024);
-
-    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if (conn && ['slow-2g', '2g', '3g'].includes(conn.effectiveType)) {
-      setIsSlow(true);
-    } else {
-      setIsSlow(false);
-    }
   }, []);
 
-  useEffect(() => {
-    checkDevice();
-    window.addEventListener("resize", checkDevice);
-    return () => window.removeEventListener("resize", checkDevice);
+  // Throttled resize handler
+  const throttledResize = useCallback(() => {
+    let timeoutId;
+    return () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(checkDevice, 150);
+    };
   }, [checkDevice]);
 
+  // Memoized image source
+  const imageSrc = useMemo(() => isMobile ? mobim : deskim, [isMobile]);
+
+  // Intersection Observer for lazy loading
   useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsIntersecting(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (heroRef.current) {
+      observer.observe(heroRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Resize event listener
+  useEffect(() => {
+    const resizeHandler = throttledResize();
+    checkDevice(); // Initial check
+    
+    window.addEventListener("resize", resizeHandler, { passive: true });
+    return () => window.removeEventListener("resize", resizeHandler);
+  }, [throttledResize, checkDevice]);
+
+  // Preload image only when needed
+  useEffect(() => {
+    if (!isIntersecting) return;
+
+    const img = new Image();
+    img.onload = () => setImageLoaded(true);
+    img.src = imageSrc;
+    
+    // Preload link for browsers that support it
     const preloadLink = document.createElement("link");
     preloadLink.rel = "preload";
     preloadLink.as = "image";
-    preloadLink.href = isMobile ? mobim : deskim;
-    preloadLink.type = "image/png";
+    preloadLink.href = imageSrc;
+    preloadLink.type = isMobile ? "image/webp" : "image/png";
     document.head.appendChild(preloadLink);
-  }, [isMobile]);
-
-  useGSAP(() => {
-    if (isMobile || isSlow) return;
-
-    if (isTablet) {
-      gsap.set([imageRef.current, ctaRef.current], { opacity: 0 });
-      gsap.timeline()
-        .to(imageRef.current, {
-          opacity: 1,
-          scale: 1,
-          duration: 1.2,
-          ease: "power1.out"
-        })
-        .to(ctaRef.current, {
-          opacity: 1,
-          duration: 0.8,
-          ease: "power1.out"
-        }, "-=0.6");
-
-      return;
-    }
-
-    gsap.set([imageRef.current, ctaRef.current], {
-      opacity: 0,
-      clearProps: "transform"
-    });
-
-    gsap.set(imageRef.current, { scale: 1.08, y: 15 });
-    gsap.set(ctaRef.current, { y: 50 });
-
-    const tl = gsap.timeline();
-    tl.to(imageRef.current, {
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      duration: 1.6,
-      ease: "power2.out"
-    }).to(ctaRef.current, {
-      opacity: 1,
-      y: 0,
-      duration: 1.2,
-      ease: "back.out(1.7)"
-    }, "-=0.8");
-
-    gsap.fromTo(frameRef.current, {
-      scale: 0.4,
-      y: -600
-    }, {
-      scale: 1,
-      y: 100,
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: "top top",
-        end: "50% top",
-        scrub: 1,
-        invalidateOnRefresh: true
-      }
-    });
-
-    const breathingTween = gsap.to(imageRef.current, {
-      scale: 1.02,
-      duration: 8,
-      ease: "sine.inOut",
-      repeat: -1,
-      yoyo: true
-    });
-
-    let mouseX = 0, mouseY = 0, lastX = 0, lastY = 0;
-    let animationId = null;
-    let rect = null;
-
-    const updateRect = () => {
-      if (containerRef.current) rect = containerRef.current.getBoundingClientRect();
-    };
-
-    const handleMouseMove = (e) => {
-      if (!rect) updateRect();
-      const intensity = 15;
-      mouseX = (((e.clientX - rect.left) / rect.width) - 0.5) * intensity;
-      mouseY = (((e.clientY - rect.top) / rect.height) - 0.5) * intensity;
-      if (!animationId) animationId = requestAnimationFrame(updateElements);
-    };
-
-    const updateElements = () => {
-      lastX += (mouseX - lastX) * 0.06;
-      lastY += (mouseY - lastY) * 0.06;
-
-      gsap.to(imageRef.current, {
-        x: lastX * 1.2,
-        y: lastY * 1.2,
-        rotationY: lastX * 0.03,
-        rotationX: -lastY * 0.03,
-        duration: 0.2,
-        ease: "power1.out",
-        overwrite: "auto"
-      });
-
-      gsap.to(ctaRef.current, {
-        x: lastX * 0.4,
-        y: lastY * 0.4,
-        duration: 0.2,
-        ease: "power1.out",
-        overwrite: "auto"
-      });
-
-      animationId = null;
-      if (Math.abs(mouseX - lastX) > 0.01 || Math.abs(mouseY - lastY) > 0.01) {
-        animationId = requestAnimationFrame(updateElements);
-      }
-    };
-
-    const handleMouseEnter = () => {
-      breathingTween.pause();
-      gsap.to(imageRef.current, { scale: 1.09, duration: 0.8, overwrite: "auto" });
-    };
-
-    const handleMouseLeave = () => {
-      gsap.to(imageRef.current, {
-        scale: 1.09,
-        duration: 5,
-        onComplete: () => breathingTween.play()
-      });
-
-      gsap.to([imageRef.current, ctaRef.current], {
-        x: 0,
-        y: 0,
-        rotationX: 0,
-        rotationY: 0,
-        duration: 1.4,
-        ease: "power2.inOut"
-      });
-    };
-
-    const handleResize = () => {
-      updateRect();
-      ScrollTrigger.refresh();
-    };
-
-    containerRef.current?.addEventListener('mousemove', handleMouseMove);
-    containerRef.current?.addEventListener('mouseenter', handleMouseEnter);
-    containerRef.current?.addEventListener('mouseleave', handleMouseLeave);
-    window.addEventListener('resize', handleResize);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
-      containerRef.current?.removeEventListener('mousemove', handleMouseMove);
-      containerRef.current?.removeEventListener('mouseenter', handleMouseEnter);
-      containerRef.current?.removeEventListener('mouseleave', handleMouseLeave);
-      if (animationId) cancelAnimationFrame(animationId);
-      gsap.killTweensOf([imageRef.current, ctaRef.current]);
-      breathingTween.kill();
+      if (document.head.contains(preloadLink)) {
+        document.head.removeChild(preloadLink);
+      }
     };
-  }, [isMobile, isTablet, isSlow]);
+  }, [imageSrc, isIntersecting, isMobile]);
+
+  // Optimized image styles
+  const imageStyles = useMemo(() => ({
+    transform: 'translate3d(0, 0, 0)', // Hardware acceleration
+    willChange: 'auto', // Remove will-change when not animating
+    backfaceVisibility: 'hidden',
+    WebkitBackfaceVisibility: 'hidden',
+    imageRendering: 'auto',
+    filter: 'none', // Remove expensive filters
+    transition: 'opacity 0.3s ease',
+    opacity: imageLoaded ? 1 : 0,
+  }), [imageLoaded]);
 
   return (
-    <div ref={heroRef} className="relative w-full">
-      <div ref={containerRef} className="hero bg-[#100905] h-screen w-full overflow-hidden">
+    <section 
+      ref={heroRef} 
+      className="relative w-full isolate" // isolate creates new stacking context
+      style={{ contain: 'layout style paint' }} // CSS containment
+    >
+      <div className="hero bg-[#100905] h-screen w-full overflow-hidden">
         <div className="relative h-screen w-full">
-          <div
-            ref={imageRef}
-            className="absolute inset-0 h-[110%] w-[110%] -left-[5%] -top-[5%] z-0"
-            style={{ perspective: isMobile ? 'none' : '1000px' }}
-          >
-            <img
-              src={isMobile ? mobim : deskim}
-              alt="Hero background"
-              className="h-full w-full object-cover object-center"
-              loading={isMobile || isSlow ? "lazy" : "eager"}
-              fetchpriority={isMobile || isSlow ? "low" : "high"}
-              decoding="async"
-              style={{
-                transform: isMobile ? 'none' : 'translateZ(0)',
-                willChange: isMobile ? 'auto' : 'transform',
-                backfaceVisibility: 'hidden',
-                WebkitBackfaceVisibility: 'hidden',
-                filter: isMobile ? 'none' : 'drop-shadow(10px 10px #555)'
-              }}
-            />
-            <noscript>
-              <img
-                src={deskim}
-                alt="Static fallback"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            </noscript>
+          
+          {/* Background Image Container */}
+          <div className="absolute inset-0 z-0">
+            {isIntersecting && (
+              <>
+                <img
+                  src={imageSrc}
+                  alt="Hero background"
+                  className="h-full w-full object-cover object-center"
+                  loading="eager"
+                  decoding="async"
+                  style={imageStyles}
+                  onLoad={() => setImageLoaded(true)}
+                  width={isMobile ? "414" : "1920"}
+                  height={isMobile ? "896" : "1080"}
+                />
+                
+                {/* Fallback for no-js */}
+                <noscript>
+                  <img
+                    src={deskim}
+                    alt="Static fallback"
+                    className="h-full w-full object-cover object-center"
+                  />
+                </noscript>
+              </>
+            )}
+            
+            {/* Loading placeholder */}
+            {!imageLoaded && (
+              <div className="absolute inset-0 bg-[#100905] animate-pulse">
+                <div className="h-full w-full bg-gradient-to-b from-[#100905] to-[#1a0f0a]"></div>
+              </div>
+            )}
           </div>
 
           {/* CTA Button */}
-          <div className="absolute inset-x-0 bottom-10 md:bottom-16 lg:bottom-27 flex justify-center">
-            <div
-              ref={ctaRef}
-              className="nav-Button bg-gradient-to-r from-[#161D27] to-[#243040] border border-[#161D27]/30 hover:scale-[0.99] px-3 sm:px-4 md:px-5 py-1 rounded-full flex items-center justify-center gap-2 sm:gap-3 md:gap-4 font-[Quicksand] transition-all ease-cubic-bezier duration-500 group hover:bg-gradient-to-r hover:from-[#D9D9D9] hover:to-[#D9D9D9] focus-within:scale-[0.99] shadow-md hover:shadow-lg"
-            >
+          <div className="absolute inset-x-0 bottom-10 md:bottom-16 lg:bottom-27 flex justify-center z-10">
+            <div className="nav-Button bg-gradient-to-r from-[#161D27] to-[#243040] border border-[#161D27]/30 hover:scale-[0.99] px-3 sm:px-4 md:px-5 py-1 rounded-full flex items-center justify-center gap-2 sm:gap-3 md:gap-4 font-[Quicksand] transition-all ease-in-out duration-300 group hover:bg-gradient-to-r hover:from-[#D9D9D9] hover:to-[#D9D9D9] focus-within:scale-[0.99] shadow-md hover:shadow-lg will-change-transform">
+              
               <a
                 href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="relative h-10 sm:h-12 md:h-14 flex items-center justify-center"
+                aria-label="Connect via WhatsApp"
               >
                 <div className="flex flex-col items-center relative">
-                  <span className="block font-bold font-[Familjen_Grotesk] text-base sm:text-lg md:text-xl lg:text-2xl transition-transform duration-400 text-[#D9D9D9] tracking-tighter group-hover:-translate-y-full opacity-100 group-hover:opacity-0 whitespace-nowrap">
+                  <span className="block font-bold font-[Familjen_Grotesk] text-base sm:text-lg md:text-xl lg:text-2xl transition-transform duration-300 text-[#D9D9D9] tracking-tighter group-hover:-translate-y-full opacity-100 group-hover:opacity-0 whitespace-nowrap">
                     Let's Connect
                   </span>
-                  <span className="absolute font-bold font-[Familjen_Grotesk] text-base sm:text-lg md:text-xl lg:text-2xl transition-transform duration-400 text-[#161D27] tracking-tighter opacity-0 group-hover:opacity-100 translate-y-full group-hover:translate-y-0 whitespace-nowrap">
+                  <span className="absolute font-bold font-[Familjen_Grotesk] text-base sm:text-lg md:text-xl lg:text-2xl transition-transform duration-300 text-[#161D27] tracking-tighter opacity-0 group-hover:opacity-100 translate-y-full group-hover:translate-y-0 whitespace-nowrap">
                     Let's Connect
                   </span>
                 </div>
               </a>
-              <div className="p-2 sm:p-2.5 md:p-3 rounded-full group-hover:-rotate-45 scale-[0.4] transition-all duration-400 text-[#D9D9D9] group-active:text-[#161D27] bg-[#D9D9D9] group-hover:text-[#D9D9D9] group-hover:bg-gradient-to-r group-hover:from-[#161D27] group-hover:to-[#243040] shadow-sm group-hover:shadow">
+              
+              <div className="p-2 sm:p-2.5 md:p-3 rounded-full group-hover:-rotate-45 scale-[0.4] transition-all duration-300 text-[#D9D9D9] group-active:text-[#161D27] bg-[#D9D9D9] group-hover:text-[#D9D9D9] group-hover:bg-gradient-to-r group-hover:from-[#161D27] group-hover:to-[#243040] shadow-sm group-hover:shadow">
                 <ion-icon name="arrow-forward-outline" size="small"></ion-icon>
               </div>
             </div>
           </div>
-
-          <div ref={frameRef}></div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

@@ -37,7 +37,7 @@ function Home() {
           <About />
 
 
-          {/* <Projects />~ */}
+          <Projects />
 
           <Process />
           <Service />
