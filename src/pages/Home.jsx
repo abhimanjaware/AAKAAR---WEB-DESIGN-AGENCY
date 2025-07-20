@@ -34,10 +34,10 @@ function Home() {
 
           <Navbar />
 
-          <About />
+          {/* <About /> */}
 
 
-          <Projects />
+          {/* <Projects /> */}
 
           <Process />
           <Service />
