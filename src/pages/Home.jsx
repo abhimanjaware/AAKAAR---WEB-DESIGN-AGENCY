@@ -34,7 +34,7 @@ function Home() {
 
           <Navbar />
 
-          {/* <About /> */}
+          <About />
 
 
           {/* <Projects /> */}
