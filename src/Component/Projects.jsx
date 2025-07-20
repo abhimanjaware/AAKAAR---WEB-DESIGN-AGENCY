@@ -439,11 +439,11 @@ function Projects() {
   // Mobile/Tablet Layout
   if (isMobile || isTablet) {
     return (
-      <div id='work' className='w-full overflow-hidden' style={{ backgroundColor: '#27170e' }} ref={projectsContainerRef}>
-        <div className="px-4 sm:px-6 md:px-8 py-12 sm:py-16">
+      <div id='work' className='w-full  overflow-hidden' style={{ backgroundColor: '#27170e' }} ref={projectsContainerRef}>
+        <div className="px-4 sm:px-6 md:px-8 py-12 pb-8 sm:py-16">
           {/* Mobile Header */}
           <div className="text-left mb-12 sm:mb-16">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white font-sans mb-4">
+            <h2 className="text-4xl  sm:text-5xl md:text-6xl font-black text-white font-sans mb-4">
               OUR PROJECTS
             </h2>
             <p className="text-lg sm:text-xl text-white font-sans">
@@ -452,12 +452,12 @@ function Projects() {
           </div>
 
           {/* Mobile Projects Grid */}
-          <div ref={showcaseRef} className="space-y-12 sm:space-y-16 md:space-y-20">
+          <div ref={showcaseRef} className="space-y-12   sm:space-y-16 md:space-y-20">
             {projects.map((project, index) => (
               <div
                 key={project.id}
                 ref={(el) => (projectRefs.current[index] = el)}
-                className={`${project.id}-Showcase rounded-2xl p-4 sm:p-6 md:p-8 border`}
+                className={`${project.id}-Showcase rounded-2xl  sm:p-6 md:p-8 border`}
                 style={{ backgroundColor: '#D9D9D9', borderColor: '#27170e' }}
               >
                 {/* Video */}

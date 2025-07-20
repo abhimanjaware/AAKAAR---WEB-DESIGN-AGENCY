@@ -10,15 +10,22 @@ function About() {
   const componentRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Mobile detection
+  // Mobile detection with throttling
   useEffect(() => {
+    let timeoutId;
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setIsMobile(window.innerWidth < 768);
+      }, 100);
     };
     
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', checkMobile);
+    };
   }, []);
 
   // Setup animations
@@ -26,23 +33,48 @@ function About() {
     if (!componentRef.current) return;
 
     if (isMobile) {
-      // MOBILE: Only basic fade-in with no other animations
-      gsap.utils.toArray(".mobile-element").forEach(el => {
+      // MOBILE: Faster, smoother fade-in animations
+      gsap.utils.toArray(".mobile-animate").forEach(el => {
         gsap.from(el, {
           opacity: 0,
           y: 20,
-          duration: 0.6,
+          duration: 0.4,
           ease: "power2.out",
           scrollTrigger: {
             trigger: el.closest('section') || componentRef.current,
-            start: "top 80%",
+            start: "top 75%",
             once: true
           }
         });
       });
-    } else {
-      // DESKTOP: Original animations exactly as before
+
+      // Special animation for floating text
+      const floatingText = [
+        "#craft p", "#out p", "#webs p", "#leave p", "#impression p"
+      ].map(sel => document.querySelector(sel)).filter(Boolean);
       
+      if (floatingText.length > 0) {
+        gsap.fromTo(floatingText, {
+          opacity: 0,
+          y: 30
+        }, {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: "#about-anime",
+            start: "top 80%",
+            once: true
+          }
+        });
+      }
+
+      // Force hardware acceleration
+      gsap.set(".mobile-animate", { willChange: "opacity, transform" });
+    } else {
+      // DESKTOP: Original animations (completely unchanged)
       // Initial text animations
       gsap.fromTo(["#craft p", "#out p", "#webs p", "#leave p", "#impression p"], {
         opacity: 0,
@@ -188,19 +220,19 @@ function About() {
         
         <div className="bg-[#1e110a] h-fit md:h-screen w-full flex flex-col justify-center py-[4rem] leading-tight text-[#D9D9D9] lg:px-[15rem] md:pb-[7rem]" id="about-anime">
           <div className="w-full flex justify-start" id="craft">
-            <p className={`whitespace-nowrap text-[13vw] pl-2 lg:text-[7vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none ${isMobile ? 'mobile-element' : ''}`}>CRAFTING</p>
+            <p className={`whitespace-nowrap text-[13vw] pl-2 lg:text-[7vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none ${isMobile ? 'mobile-animate' : ''}`}>CRAFTING</p>
           </div>
           <div className="w-full" id="out">
-            <p className={`whitespace-nowrap text-[21vw] lg:text-[11.5vw] tracking-normal font-[Tangerine] leading-none text-start pl-[3rem] lg:pl-[17rem] mt-[-50px] ${isMobile ? 'mobile-element' : ''}`}>Outstanding</p>
+            <p className={`whitespace-nowrap text-[21vw] lg:text-[11.5vw] tracking-normal font-[Tangerine] leading-none text-start pl-[3rem] lg:pl-[17rem] mt-[-50px] ${isMobile ? 'mobile-animate' : ''}`}>Outstanding</p>
           </div>
           <div id="webs">
-            <p className={`whitespace-nowrap text-[12.5vw] lg:text-[6vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-end pr-[18rem] ${isMobile ? 'mobile-element' : ''}`}>WEBSITES</p>
+            <p className={`whitespace-nowrap text-[12.5vw] lg:text-[6vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-end pr-[18rem] ${isMobile ? 'mobile-animate' : ''}`}>WEBSITES</p>
           </div>
           <div id="leave">
-            <p className={`whitespace-nowrap text-[12vw] lg:text-[7vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-center ${isMobile ? 'mobile-element' : ''}`}>THAT LEAVES A</p>
+            <p className={`whitespace-nowrap text-[12vw] lg:text-[7vw] tracking-tight font-black font-[Familjen_Grotesk] leading-none text-center ${isMobile ? 'mobile-animate' : ''}`}>THAT LEAVES A</p>
           </div>
           <div id="impression">
-            <p className={`whitespace-nowrap text-[17vw] pl-16 lg:text-[10.5vw] tracking-normal font-[Tangerine] leading-none text-center lg:text-end lg:pr-[-5rem] ${isMobile ? 'mobile-element' : ''}`}>Lasting Impression.</p>
+            <p className={`whitespace-nowrap text-[17vw] pl-16 lg:text-[10.5vw] tracking-normal font-[Tangerine] leading-none text-center lg:text-end lg:pr-[-5rem] ${isMobile ? 'mobile-animate' : ''}`}>Lasting Impression.</p>
           </div>
         </div>
       </div>
@@ -261,14 +293,14 @@ function About() {
           {isMobile && (
             <div className="block md:hidden min-h-screen w-full">
               <div className="mobile-founder-container w-full flex flex-col items-start px-5 justify-start relative pt-12">
-                <div className="mobile-title text-[#D9D9D9] text-start pb-2 w-full z-10 mobile-element">
+                <div className="mobile-title text-[#D9D9D9] text-start pb-2 w-full z-10 mobile-animate">
                   <h2 className="text-[14vw] leading-none font-[Roboto_flex] font-extrabold">
                     MEET THE
                     <h2 className="text-[15vw] leading-none pl-10">FOUNDER</h2>
                   </h2>
                 </div>
 
-                <div className="mobile-image w-[85%] h-[50vh] overflow-hidden relative mt-4 mobile-element">
+                <div className="mobile-image w-[85%] h-[50vh] overflow-hidden relative mt-4 mobile-animate">
                   <img
                     className="w-full h-full object-cover object-center saturate-60"
                     src={mainImage}
@@ -280,17 +312,17 @@ function About() {
 
                 <div className="mobile-text-content w-[95%] pt-4 text-white/90 text-[19px] font-normal leading-relaxed capitalize font-[Familjen_Grotesk] text-left">
                   {[
-                    <span key="p1" className="font-black text-start text-white mobile-element">
+                    <span key="p1" className="font-black text-start text-white mobile-animate">
                       I'm Abhiman Jaware, The founder of <span className="capitalize"><a href="">aakaar.digital.</a></span>
                     </span>,
-                    <p key="p2" className="mobile-element">a premium web design studio based in Nashik. With a refined eye for aesthetics and a passion for handcrafted code.</p>,
-                    <p key="p3" className="mobile-element">We create websites that do more than look good — they perform. We design digital experiences that boost your online presence.</p>,
-                    <p key="p4" className="mobile-element">Every brand has a story, and we bring it to life through clean code, timeless visuals, and thoughtful interaction. We specialize in web design and development for clients who care about details. Our goal is to create high-end web experiences that make your brand go from a 'ordinary' to a 'premium'.</p>
+                    <p key="p2" className="mobile-animate">a premium web design studio based in Nashik. With a refined eye for aesthetics and a passion for handcrafted code.</p>,
+                    <p key="p3" className="mobile-animate">We create websites that do more than look good — they perform. We design digital experiences that boost your online presence.</p>,
+                    <p key="p4" className="mobile-animate">Every brand has a story, and we bring it to life through clean code, timeless visuals, and thoughtful interaction. We specialize in web design and development for clients who care about details. Our goal is to create high-end web experiences that make your brand go from a 'ordinary' to a 'premium'.</p>
                   ]}
                 </div>
 
                 <div className="mobile-contact py-2">
-                  <div className="abhiman-mail-mobile flex items-center gap-2 justify-start mb-4 mobile-element">
+                  <div className="abhiman-mail-mobile flex items-center gap-2 justify-start mb-4 mobile-animate">
                     <ion-icon name="mail-outline" />
                     <div className="mail py-2 text-base leading-none text-white font-normal text-left">
                       <a
@@ -302,7 +334,7 @@ function About() {
                     </div>
                   </div>
 
-                  <div className="abhiman-connect-mobile cta-btn py-2 flex justify-start mobile-element">
+                  <div className="abhiman-connect-mobile cta-btn py-2 flex justify-start mobile-animate">
                     <div className="nav-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 px-3 py-[2px] relative rounded-full flex items-center justify-center gap-3 overflow-hidden font-[Quicksand]">
                       <a
                         href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!"
@@ -324,7 +356,7 @@ function About() {
             </div>
           )}
 
-          {/* Desktop layout - EXACTLY ORIGINAL */}
+          {/* Desktop layout */}
           {!isMobile && (
             <>
               {/* Tablet Layout */}
