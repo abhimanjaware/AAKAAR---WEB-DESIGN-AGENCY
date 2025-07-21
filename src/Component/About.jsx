@@ -335,21 +335,26 @@ function About() {
                   </div>
 
                   <div className="abhiman-connect-mobile cta-btn py-2 flex justify-start mobile-animate">
-                    <div className="nav-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 px-3 py-[2px] relative rounded-full flex items-center justify-center gap-3 overflow-hidden font-[Quicksand]">
-                      <a
-                        href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="relative h-[2.5rem] flex items-center justify-center"
-                      >
-                        <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[4vw] text-[#27170e] text-center tracking-tighter whitespace-nowrap">
-                          Let's Connect
-                        </span>
-                      </a>
-                      <div className="px-3 py-[10px] rounded-full text-[#27170e] bg-[#27170e]">
-                        <ion-icon name="arrow-forward-outline" size="small" />
-                      </div>
-                    </div>
+                   <div className="nav-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-4 py-[2px] relative rounded-full flex items-center justify-center gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
+                          <a
+                            href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="relative h-[3.2rem] flex items-center justify-center"
+                          >
+                            <div className="flex flex-col justify-center items-center relative">
+                              <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[4vw] transition-all ease-in duration-300 text-[#27170e] text-center tracking-tighter group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap">
+                                Let's Connect
+                              </span>
+                              <span className="absolute font-bold leading-none font-[Familjen_Grotesk] text-[4vw] transition-all ease-in duration-300 group-active:text-[#27170e] text-[#D9D9D9] text-center tracking-tighter opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap">
+                                Let's Connect
+                              </span>
+                            </div>
+                          </a>
+                          <div className="px-4 py-4 rounded-full group-hover:-rotate-45 scale-[0.2] transition-all ease-in group-hover:duration-300 group-hover:scale-90 text-[#27170e] group-active:bg-[#27170e] group-active:text-[#D9D9D9] bg-[#27170e] group-hover:text-[#27170e] group-hover:bg-[#D9D9D9]">
+                            <ion-icon name="arrow-forward-outline" size="small" />
+                          </div>
+                        </div>
                   </div>
                 </div>
               </div>
