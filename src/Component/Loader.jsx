@@ -100,7 +100,7 @@ function Loader() {
     if (!shouldShowLoader) return;
 
     counterStartTime.current = Date.now();
-    const totalDuration = isMobile ? 2500 : 3500;
+    const totalDuration = isMobile ? 2500 : 4500; // Increased by 1 second for both
     
     const updateCounter = () => {
       const elapsed = Date.now() - counterStartTime.current;
@@ -127,7 +127,7 @@ function Loader() {
     };
   }, [shouldShowLoader, isMobile]);
 
-  // Original strip positions
+  // Original strip positions (only for desktop)
   const stripPositions = useMemo(() => [
     "top-1/2", "bottom-1/3", "top-1/3", "bottom-1/6", "top-1/6", 
     "top-full", "", "-bottom-1/6", "-top-1/6", "-bottom-1/3", 
@@ -135,7 +135,7 @@ function Loader() {
     "-bottom-5/6", "-top-5/6", "-bottom-full", "-top-full"
   ], []);
 
-  // Memoized LoadingTextDisplay
+  // Memoized LoadingTextDisplay (only for desktop)
   const LoadingTextDisplay = useMemo(() => 
     React.memo(({ isInverted = false }) => {
       const repeatCount = 15;
@@ -155,7 +155,7 @@ function Loader() {
     })
   , []);
 
-  // GSAP animations
+  // GSAP animations - different for mobile and desktop
   useGSAP(() => {
     if (!shouldShowLoader) return;
 
@@ -165,82 +165,115 @@ function Loader() {
       nullTargetWarn: false
     });
 
-    const elements = {
-      strips: [".strip1", ".strip2"],
-      webElements: [".web-horizontal", ".web-vertical", ".web-slantright", ".web-slantleft"],
-      beamCircle: ".beam-circle",
-      textElements: [".loader-movingtext", ".loader-movingtext-invert"]
-    };
+    if (isMobile) {
+      // Simple mobile animations - just the beam
+      const tl = gsap.timeline({
+        defaults: { 
+          ease: "power2.out"
+        }
+      });
+      
+      timelineRef.current = tl;
 
-    gsap.set([...elements.strips, ...elements.webElements], {
-      willChange: 'transform'
-    });
+      // Simple beam entrance animation
+      tl.fromTo(".beam-circle", {
+        scale: 0,
+        opacity: 0
+      }, {
+        scale: 1,
+        opacity: 1,
+        duration: 0.6,
+        ease: "back.out(1.7)"
+      });
 
-    const tl = gsap.timeline({
-      defaults: { 
-        ease: "power1.out"
-      }
-    });
-    
-    timelineRef.current = tl;
+      // Optional: simple pulse animation for mobile beam
+      gsap.to(".beam-circle", {
+        scale: 1.05,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: "power2.inOut"
+      });
 
-    tl.fromTo(elements.strips, {
-      width: 0,
-    }, {
-      width: "2900px",
-      duration: 0.8,
-    });
+    } else {
+      // Full desktop animations
+      const elements = {
+        strips: [".strip1", ".strip2"],
+        webElements: [".web-horizontal", ".web-vertical", ".web-slantright", ".web-slantleft"],
+        beamCircle: ".beam-circle",
+        textElements: [".loader-movingtext", ".loader-movingtext-invert"]
+      };
 
-    tl.fromTo(".web-horizontal", { width: 0 }, { 
-      width: "2900px",
-      duration: 0.8,
-    }, 'z');
+      gsap.set([...elements.strips, ...elements.webElements], {
+        willChange: 'transform'
+      });
 
-    tl.fromTo(".web-vertical", { width: 0 }, { 
-      width: "100vh",
-      duration: 0.8,
-    }, 'z');
+      const tl = gsap.timeline({
+        defaults: { 
+          ease: "power1.out"
+        }
+      });
+      
+      timelineRef.current = tl;
 
-    tl.fromTo([".web-slantright", ".web-slantleft"], { width: 0 }, { 
-      width: "2500px",
-      duration: 0.8,
-    }, 'z');
+      tl.fromTo(elements.strips, {
+        width: 0,
+      }, {
+        width: "2900px",
+        duration: 0.8,
+      });
 
-    tl.fromTo(".web-horizontal-1", { x: "-100%" }, { x: "0%" }, "x");
-    tl.fromTo(".web-horizontal-2", { x: "100%" }, { x: "0%" }, "x");
-    tl.fromTo(".web-vertical-1", { x: "-100%" }, { x: "0%" }, "x");
-    tl.fromTo(".web-vertical-2", { x: "100%" }, { x: "0%" }, "x");
-    tl.fromTo([".web-slantright-1", ".web-slantleft-1"], { x: "-100%" }, { x: "0%" }, "x");
-    tl.fromTo([".web-slantright-2", ".web-slantleft-2"], { x: "100%" }, { x: "0%" }, "x");
+      tl.fromTo(".web-horizontal", { width: 0 }, { 
+        width: "2900px",
+        duration: 0.8,
+      }, 'z');
 
-    tl.fromTo(elements.beamCircle, {
-      scale: 0,
-      opacity: 0
-    }, {
-      scale: 1,
-      opacity: 1,
-      duration: 0.6,
-      ease: "back.out(1.7)"
-    }, "-=0.5");
+      tl.fromTo(".web-vertical", { width: 0 }, { 
+        width: "100vh",
+        duration: 0.8,
+      }, 'z');
 
-    gsap.to(".loader-movingtext", {
-      x: "-100%",
-      duration: 90,
-      repeat: -1,
-      ease: "none"
-    });
+      tl.fromTo([".web-slantright", ".web-slantleft"], { width: 0 }, { 
+        width: "2500px",
+        duration: 0.8,
+      }, 'z');
 
-    gsap.to(".loader-movingtext-invert", {
-      x: "100%",
-      duration: 90,
-      repeat: -1,
-      ease: "none"
-    });
+      tl.fromTo(".web-horizontal-1", { x: "-100%" }, { x: "0%" }, "x");
+      tl.fromTo(".web-horizontal-2", { x: "100%" }, { x: "0%" }, "x");
+      tl.fromTo(".web-vertical-1", { x: "-100%" }, { x: "0%" }, "x");
+      tl.fromTo(".web-vertical-2", { x: "100%" }, { x: "0%" }, "x");
+      tl.fromTo([".web-slantright-1", ".web-slantleft-1"], { x: "-100%" }, { x: "0%" }, "x");
+      tl.fromTo([".web-slantright-2", ".web-slantleft-2"], { x: "100%" }, { x: "0%" }, "x");
+
+      tl.fromTo(elements.beamCircle, {
+        scale: 0,
+        opacity: 0
+      }, {
+        scale: 1,
+        opacity: 1,
+        duration: 0.6,
+        ease: "back.out(1.7)"
+      }, "-=0.5");
+
+      gsap.to(".loader-movingtext", {
+        x: "-100%",
+        duration: 90,
+        repeat: -1,
+        ease: "none"
+      });
+
+      gsap.to(".loader-movingtext-invert", {
+        x: "100%",
+        duration: 90,
+        repeat: -1,
+        ease: "none"
+      });
+    }
 
     return () => {
       if (timelineRef.current) timelineRef.current.kill();
     };
-  }, [shouldShowLoader]);
+  }, [shouldShowLoader, isMobile]);
 
   // Beam color change
   useGSAP(() => {
@@ -258,52 +291,73 @@ function Loader() {
     }
   }, [beamColor, shouldShowLoader]);
 
-  // Exit animation
+  // Exit animation - simplified for mobile
   useGSAP(() => {
     if (startOutAnimation && shouldShowLoader) {
       const outTl = gsap.timeline({
         onComplete: () => setShouldShowLoader(false)
       });
       
-      outTl.to([".web-horizontal", ".web-vertical", ".web-slantright", ".web-slantleft", ".strip1", ".strip2"], {
-        width: 0,
-        opacity: 0,
-        duration: 1,
-        ease: "power3.in"
-      }, 0);
-      
-      outTl.to(".beam-circle", {
-        scale: 1.2,
-        duration: 0.2
-      })
-      .to(".beam-circle", {
-        scale: 50,
-        duration: 0.5
-      })
-      .to(".loader-content", {
-        backgroundColor: "#ffffff",
-        duration: 0.4
-      }, "-=0.4")
-      .to(".main-loader", {
-        opacity: 0,
-        duration: 0.5
-      });
+      if (isMobile) {
+        // Simple mobile exit - just fade out
+        outTl.to(".beam-circle", {
+          scale: 1.2,
+          duration: 0.2
+        })
+        .to(".beam-circle", {
+          scale: 30,
+          duration: 0.4
+        })
+        .to(".loader-content", {
+          backgroundColor: "#ffffff",
+          duration: 0.3
+        }, "-=0.3")
+        .to(".main-loader", {
+          opacity: 0,
+          duration: 0.3
+        });
+      } else {
+        // Full desktop exit animation
+        outTl.to([".web-horizontal", ".web-vertical", ".web-slantright", ".web-slantleft", ".strip1", ".strip2"], {
+          width: 0,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.in"
+        }, 0);
+        
+        outTl.to(".beam-circle", {
+          scale: 1.2,
+          duration: 0.2
+        })
+        .to(".beam-circle", {
+          scale: 50,
+          duration: 0.5
+        })
+        .to(".loader-content", {
+          backgroundColor: "#ffffff",
+          duration: 0.4
+        }, "-=0.4")
+        .to(".main-loader", {
+          opacity: 0,
+          duration: 0.5
+        });
+      }
     }
-  }, [startOutAnimation, shouldShowLoader]);
+  }, [startOutAnimation, shouldShowLoader, isMobile]);
 
   // Responsive sizes
   const beamSize = useMemo(() => {
-    const baseSize = Math.min(windowSize.width, windowSize.height) * 0.3;
+    const baseSize = Math.min(windowSize.width, windowSize.height) * (isMobile ? 0.4 : 0.3);
     return {
-      width: Math.min(baseSize, 200),
-      height: Math.min(baseSize, 200)
+      width: Math.min(baseSize, isMobile ? 160 : 200),
+      height: Math.min(baseSize, isMobile ? 160 : 200)
     };
-  }, [windowSize]);
+  }, [windowSize, isMobile]);
 
   const fontSize = useMemo(() => {
-    const baseSize = Math.min(windowSize.width, windowSize.height) * 0.07;
-    return Math.min(baseSize, 32);
-  }, [windowSize]);
+    const baseSize = Math.min(windowSize.width, windowSize.height) * (isMobile ? 0.08 : 0.07);
+    return Math.min(baseSize, isMobile ? 28 : 32);
+  }, [windowSize, isMobile]);
 
   if (!shouldShowLoader) {
     return null;
@@ -319,122 +373,148 @@ function Loader() {
       }}
     >
       <div className="loader-content h-full w-full bg-black overflow-hidden relative">
-        <div className="loader-allStrips h-full w-full">
-          {/* Centered Beam Circle */}
-          <div 
-            className="beam-circle absolute bg-black rounded-full z-50 flex items-center justify-center"
-            style={{
-              width: beamSize.width,
-              height: beamSize.height,
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, -50%)'
-            }}
-          >
+        {isMobile ? (
+          // Minimal mobile loader - just beam and counter
+          <div className="h-full w-full flex items-center justify-center">
             <div 
-              className="counter-number text-zinc-500 font-bold"
+              className="beam-circle bg-black rounded-full z-50 flex items-center justify-center"
               style={{
-                fontFamily: "'Notable', sans-serif",
-                letterSpacing: '1px',
-                fontSize: `${fontSize}px`,
-                lineHeight: 1
+                width: beamSize.width,
+                height: beamSize.height,
               }}
             >
-              {percentage}%
-            </div>
-          </div>
-
-          <div className="bg-strip flex justify-center">
-            {stripPositions.map((position, index) => (
-              <React.Fragment key={index}>
-                <div 
-                  className={`strip1 h-4 bg-[#070304] absolute ${position} rotate-45 overflow-hidden`}
-                  style={{ 
-                    width: '2900px'
-                  }}
-                >
-                  <div className="strip-text-animation whitespace-nowrap absolute w-[200%] left-0">
-                    {Array.from({ length: 20 }, (_, i) => (
-                      <span 
-                        key={i} 
-                        className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block"
-                      >
-                        LOADING
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                
-                <div 
-                  className={`strip2 h-4 bg-[#070304] absolute ${position} -rotate-45 overflow-hidden`}
-                  style={{ 
-                    width: '2900px'
-                  }}
-                >
-                  <div className="strip-text-animation-reverse whitespace-nowrap absolute w-[200%] left-0">
-                    {Array.from({ length: 20 }, (_, i) => (
-                      <span 
-                        key={i} 
-                        className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block"
-                      >
-                        LOADING
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </React.Fragment>
-            ))}
-          </div> 
-          
-          <div className="webstrips flex justify-center">
-            <div 
-              className="web-vertical h-5 w-[100vh] flex absolute rotate-90 overflow-hidden top-1/2 left-1/2 -translate-x-1/2"
-            >
-              <div className="web-vertical-1 h-full w-full bg-gradient-to-r from-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden">
-                <LoadingTextDisplay />
-              </div>
-              <div className="web-vertical-2 h-full w-full bg-gradient-to-l from-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden">
-                <LoadingTextDisplay isInverted={true} />
-              </div>
-            </div>
-
-            <div 
-              className="web-horizontal h-5 flex absolute top-1/2 overflow-hidden"
-              style={{ 
-                width: '2900px'
-              }}
-            >
-              <div className="web-horizontal-1 h-full w-full bg-gradient-to-r from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-start overflow-hidden">
-                <LoadingTextDisplay />
-              </div>
-              <div className="web-horizontal-2 h-full w-full bg-gradient-to-l from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-end overflow-hidden">
-                <LoadingTextDisplay isInverted={true} />
-              </div>
-            </div>
-
-            {[
-              { rotation: '-rotate-[55deg]', class: 'web-slantright' },
-              { rotation: 'rotate-[55deg]', class: 'web-slantleft' },
-              { rotation: '-rotate-[26deg]', class: 'web-slantright' },
-              { rotation: 'rotate-[26deg]', class: 'web-slantright' }
-            ].map(({ rotation, class: className }, index) => (
               <div 
-                key={index} 
-                className={`${className} h-5 flex absolute top-1/2 ${rotation}`}
-                style={{ 
-                  width: '2500px'
+                className="counter-number text-zinc-500 font-bold"
+                style={{
+                  fontFamily: "'Notable', sans-serif",
+                  letterSpacing: '1px',
+                  fontSize: `${fontSize}px`,
+                  lineHeight: 1
                 }}
               >
-                <div className={`${className}-1 h-full w-full bg-gradient-to-r from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden`}>
+                {percentage}%
+              </div>
+            </div>
+          </div>
+        ) : (
+          // Full desktop loader with all animations
+          <div className="loader-allStrips h-full w-full">
+            {/* Centered Beam Circle */}
+            <div 
+              className="beam-circle absolute bg-black rounded-full z-50 flex items-center justify-center"
+              style={{
+                width: beamSize.width,
+                height: beamSize.height,
+                left: '50%',
+                top: '50%',
+                transform: 'translate(-50%, -50%)'
+              }}
+            >
+              <div 
+                className="counter-number text-zinc-500 font-bold"
+                style={{
+                  fontFamily: "'Notable', sans-serif",
+                  letterSpacing: '1px',
+                  fontSize: `${fontSize}px`,
+                  lineHeight: 1
+                }}
+              >
+                {percentage}%
+              </div>
+            </div>
+
+            <div className="bg-strip flex justify-center">
+              {stripPositions.map((position, index) => (
+                <React.Fragment key={index}>
+                  <div 
+                    className={`strip1 h-4 bg-[#070304] absolute ${position} rotate-45 overflow-hidden`}
+                    style={{ 
+                      width: '2900px'
+                    }}
+                  >
+                    <div className="strip-text-animation whitespace-nowrap absolute w-[200%] left-0">
+                      {Array.from({ length: 20 }, (_, i) => (
+                        <span 
+                          key={i} 
+                          className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block"
+                        >
+                          LOADING
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className={`strip2 h-4 bg-[#070304] absolute ${position} -rotate-45 overflow-hidden`}
+                    style={{ 
+                      width: '2900px'
+                    }}
+                  >
+                    <div className="strip-text-animation-reverse whitespace-nowrap absolute w-[200%] left-0">
+                      {Array.from({ length: 20 }, (_, i) => (
+                        <span 
+                          key={i} 
+                          className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block"
+                        >
+                          LOADING
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div> 
+            
+            <div className="webstrips flex justify-center">
+              <div 
+                className="web-vertical h-5 w-[100vh] flex absolute rotate-90 overflow-hidden top-1/2 left-1/2 -translate-x-1/2"
+              >
+                <div className="web-vertical-1 h-full w-full bg-gradient-to-r from-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden">
                   <LoadingTextDisplay />
                 </div>
-                <div className={`${className}-2 h-full w-full bg-gradient-to-l from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden`}>
+                <div className="web-vertical-2 h-full w-full bg-gradient-to-l from-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden">
                   <LoadingTextDisplay isInverted={true} />
                 </div>
               </div>
-            ))}
+
+              <div 
+                className="web-horizontal h-5 flex absolute top-1/2 overflow-hidden"
+                style={{ 
+                  width: '2900px'
+                }}
+              >
+                <div className="web-horizontal-1 h-full w-full bg-gradient-to-r from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-start overflow-hidden">
+                  <LoadingTextDisplay />
+                </div>
+                <div className="web-horizontal-2 h-full w-full bg-gradient-to-l from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-end overflow-hidden">
+                  <LoadingTextDisplay isInverted={true} />
+                </div>
+              </div>
+
+              {[
+                { rotation: '-rotate-[55deg]', class: 'web-slantright' },
+                { rotation: 'rotate-[55deg]', class: 'web-slantleft' },
+                { rotation: '-rotate-[26deg]', class: 'web-slantright' },
+                { rotation: 'rotate-[26deg]', class: 'web-slantright' }
+              ].map(({ rotation, class: className }, index) => (
+                <div 
+                  key={index} 
+                  className={`${className} h-5 flex absolute top-1/2 ${rotation}`}
+                  style={{ 
+                    width: '2500px'
+                  }}
+                >
+                  <div className={`${className}-1 h-full w-full bg-gradient-to-r from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden`}>
+                    <LoadingTextDisplay />
+                  </div>
+                  <div className={`${className}-2 h-full w-full bg-gradient-to-l from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden`}>
+                    <LoadingTextDisplay isInverted={true} />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
