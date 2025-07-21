@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 gsap.registerPlugin(useGSAP);
@@ -12,6 +12,12 @@ function Loader() {
     width: typeof window !== 'undefined' ? window.innerWidth : 0,
     height: typeof window !== 'undefined' ? window.innerHeight : 0
   });
+
+  // Refs for performance optimization
+  const mainLoaderRef = useRef(null);
+  const timelineRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const resizeTimeoutRef = useRef(null);
 
   // Device detection with performance optimization
   const isMobile = useMemo(() => {
@@ -30,25 +36,33 @@ function Loader() {
     }
   }, []);
 
-  // Throttled resize handler
+  // Optimized resize handler with debouncing
   const handleResize = useCallback(() => {
     if (typeof window === 'undefined') return;
     
-    const updateSize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-      
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    };
-
-    if (typeof window.requestAnimationFrame === 'function') {
-      window.requestAnimationFrame(updateSize);
-    } else {
-      updateSize();
+    // Clear existing timeout
+    if (resizeTimeoutRef.current) {
+      clearTimeout(resizeTimeoutRef.current);
     }
+    
+    // Debounce resize updates
+    resizeTimeoutRef.current = setTimeout(() => {
+      const updateSize = () => {
+        setWindowSize({
+          width: window.innerWidth,
+          height: window.innerHeight
+        });
+        
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      };
+
+      if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(updateSize);
+      } else {
+        updateSize();
+      }
+    }, 16); // ~60fps throttling
   }, []);
 
   useEffect(() => {
@@ -59,6 +73,9 @@ function Loader() {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
     };
   }, [shouldShowLoader, handleResize]);
 
@@ -66,10 +83,12 @@ function Loader() {
   useEffect(() => {
     if (!shouldShowLoader || typeof document === 'undefined') return;
 
-    // Load font without blocking
+    // Preload font asynchronously
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Notable&display=swap';
-    link.rel = 'stylesheet';
+    link.rel = 'preload';
+    link.as = 'style';
+    link.onload = function() { this.rel = 'stylesheet'; };
     link.crossOrigin = 'anonymous';
     document.head.appendChild(link);
 
@@ -104,13 +123,12 @@ function Loader() {
     };
   }, [shouldShowLoader]);
   
-  // Percentage counter with optimized timing
+  // Optimized percentage counter
   useEffect(() => {
     if (!shouldShowLoader) return;
 
-    let animationId;
     let startTime = null;
-    const totalDuration = 3500; // Same duration for both mobile and desktop
+    const totalDuration = isMobile ? 2500 : 3500; // Faster on mobile
     
     const updateCounter = (timestamp) => {
       if (!startTime) startTime = timestamp;
@@ -123,94 +141,118 @@ function Loader() {
       if (progress >= 1) {
         setPercentage(100);
         setBeamColor("white");
-        setTimeout(() => setStartOutAnimation(true), 500);
+        setTimeout(() => setStartOutAnimation(true), 300); // Faster transition on mobile
         return;
       }
       
-      animationId = requestAnimationFrame(updateCounter);
+      animationFrameRef.current = requestAnimationFrame(updateCounter);
     };
     
-    animationId = requestAnimationFrame(updateCounter);
+    animationFrameRef.current = requestAnimationFrame(updateCounter);
     return () => {
-      if (animationId) cancelAnimationFrame(animationId);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
-  }, [shouldShowLoader]);
+  }, [shouldShowLoader, isMobile]);
 
-  // Original strip positions
-  const stripPositions = useMemo(() => [
-    "top-1/2", "bottom-1/3", "top-1/3", "bottom-1/6", "top-1/6", 
-    "top-full", "", "-bottom-1/6", "-top-1/6", "-bottom-1/3", 
-    "-top-1/3", "-bottom-1/2", "-top-1/2", "-bottom-2/3", "-top-2/3", 
-    "-bottom-5/6", "-top-5/6", "-bottom-full", "-top-full"
-  ], []);
+  // Memoized strip positions with reduced count for mobile
+  const stripPositions = useMemo(() => {
+    const allPositions = [
+      "top-1/2", "bottom-1/3", "top-1/3", "bottom-1/6", "top-1/6", 
+      "top-full", "", "-bottom-1/6", "-top-1/6", "-bottom-1/3", 
+      "-top-1/3", "-bottom-1/2", "-top-1/2", "-bottom-2/3", "-top-2/3", 
+      "-bottom-5/6", "-top-5/6", "-bottom-full", "-top-full"
+    ];
+    // Reduce strips on mobile for better performance
+    return isMobile ? allPositions.slice(0, 12) : allPositions;
+  }, [isMobile]);
 
-  // Original loading text component
+  // Optimized loading text component with reduced repetitions on mobile
   const LoadingTextDisplay = useMemo(() => React.memo(({ isInverted = false }) => {
     const containerClass = isInverted ? "loader-movingtext-invert" : "loader-movingtext";
+    const repeatCount = isMobile ? 8 : 15; // Fewer repetitions on mobile
     
     return (
       <div className={containerClass}>
-        {Array.from({ length: 15 }, (_, i) => (
+        {Array.from({ length: repeatCount }, (_, i) => (
           <span 
             key={i} 
             className="text-black/85 text-[12px] font-black px-2 tracking-wide"
-            style={{ willChange: 'transform' }}
+            style={{ 
+              willChange: 'transform',
+              contain: 'layout style paint'
+            }}
           >
             LOADING
           </span>
         ))}
       </div>
     );
-  }), []);
+  }), [isMobile]);
 
-  // Main GSAP animations with mobile performance optimizations
+  // Main GSAP animations with enhanced mobile optimizations
   useGSAP(() => {
     if (!shouldShowLoader) return;
 
-    // Performance optimizations that don't affect visuals
+    // Enhanced performance optimizations
     gsap.config({
       force3D: true,
-      autoSleep: 60,
+      autoSleep: 30, // More aggressive sleeping
       nullTargetWarn: false,
       autoKill: true
     });
 
-    // Use will-change for critical elements
-    gsap.set([".strip1", ".strip2", ".web-horizontal", ".web-vertical", ".web-slantright", ".web-slantleft"], {
-      willChange: 'transform, opacity'
+    // Batch DOM queries for better performance
+    const elements = {
+      strips: gsap.utils.toArray([".strip1", ".strip2"]),
+      webElements: gsap.utils.toArray([".web-horizontal", ".web-vertical", ".web-slantright", ".web-slantleft"]),
+      beamCircle: ".beam-circle",
+      textElements: gsap.utils.toArray([".loader-movingtext", ".loader-movingtext-invert"]),
+      stripTextElements: gsap.utils.toArray([".strip-text-animation", ".strip-text-animation-reverse"])
+    };
+
+    // Set will-change for critical elements in batch
+    gsap.set([...elements.strips, ...elements.webElements], {
+      willChange: 'transform, opacity',
+      force3D: true
     });
 
     const tl = gsap.timeline({
-      defaults: { ease: "power2.out" }
+      defaults: { 
+        ease: isMobile ? "power1.out" : "power2.out" // Simpler easing on mobile
+      }
     });
     
-    // Initial strip animations
-    tl.fromTo([".strip1", ".strip2"], {
+    timelineRef.current = tl;
+
+    // Optimized initial strip animations
+    tl.fromTo(elements.strips, {
       width: 0,
     }, {
-      width: "2900px",
-      duration: 0.8,
+      width: isMobile ? "2000px" : "2900px", // Smaller width on mobile
+      duration: isMobile ? 0.6 : 0.8,
       ease: "power2.inOut",
     });
 
-    // Main strip animations
+    // Optimized main strip animations with reduced complexity on mobile
     const stripAnimations = [
-      { selector: '.web-horizontal', width: "2900px" },
+      { selector: '.web-horizontal', width: isMobile ? "2000px" : "2900px" },
       { selector: '.web-vertical', width: "100vh" },
-      { selector: '.web-slantright', width: "2500px" },
-      { selector: '.web-slantleft', width: "2500px" }
+      { selector: '.web-slantright', width: isMobile ? "1800px" : "2500px" },
+      { selector: '.web-slantleft', width: isMobile ? "1800px" : "2500px" }
     ];
     
     stripAnimations.forEach(({ selector, width }) => {
       tl.fromTo(selector, { width: 0 }, { 
         width, 
-        duration: 0.8,
+        duration: isMobile ? 0.6 : 0.8,
         ease: 'power2.inOut', 
-        stagger: 0.03 
+        stagger: isMobile ? 0.02 : 0.03 // Faster stagger on mobile
       }, 'z');
     });
     
-    // Movement animations
+    // Optimized movement animations
     const movementAnimations = [
       { selector: ".web-horizontal-1", from: { x: "-100%" }, to: { x: "0%" } },
       { selector: ".web-horizontal-2", from: { x: "100%" }, to: { x: "0%" } },
@@ -225,28 +267,28 @@ function Loader() {
     movementAnimations.forEach(({ selector, from, to }) => {
       tl.fromTo(selector, from, { 
         ...to, 
-        duration: 0.8, 
-        ease: "power2.out" 
+        duration: isMobile ? 0.6 : 0.8,
+        ease: isMobile ? "power1.out" : "power2.out"
       }, "x");
     });
  
-    // Beam circle animation
-    tl.fromTo(".beam-circle", {
+    // Optimized beam circle animation
+    tl.fromTo(elements.beamCircle, {
       scale: 0,
       opacity: 0
     }, {
       scale: 1,
       opacity: 1,
-      duration: 0.6,
-      ease: "back.out(1.7)"
+      duration: isMobile ? 0.4 : 0.6,
+      ease: isMobile ? "back.out(1.2)" : "back.out(1.7)" // Less bounce on mobile
     }, "-=0.5");
 
-    // Text animations
+    // Optimized text animations with reduced duration on mobile
     const textAnimations = [
-      { selector: ".loader-movingtext", x: "-100%", duration: 90 },
-      { selector: ".loader-movingtext-invert", x: "100%", duration: 90 },
-      { selector: ".strip-text-animation", x: "-100%", duration: 40 },
-      { selector: ".strip-text-animation-reverse", x: "100%", duration: 40 }
+      { selector: ".loader-movingtext", x: "-100%", duration: isMobile ? 60 : 90 },
+      { selector: ".loader-movingtext-invert", x: "100%", duration: isMobile ? 60 : 90 },
+      { selector: ".strip-text-animation", x: "-100%", duration: isMobile ? 25 : 40 },
+      { selector: ".strip-text-animation-reverse", x: "100%", duration: isMobile ? 25 : 40 }
     ];
     
     textAnimations.forEach(({ selector, x, duration }) => {
@@ -258,28 +300,35 @@ function Loader() {
         delay: selector.includes('strip') ? 0 : 1
       });
     });
-  }, [shouldShowLoader]);
 
-  // Beam color change animation
+    // Cleanup function
+    return () => {
+      if (timelineRef.current) {
+        timelineRef.current.kill();
+      }
+    };
+  }, [shouldShowLoader, isMobile]);
+
+  // Optimized beam color change animation
   useGSAP(() => {
     if (beamColor === "white" && shouldShowLoader) {
       gsap.to(".beam-circle", {
         backgroundColor: "#ffffff",
-        boxShadow: "0 0 20px rgba(255, 255, 255, 0.8)",
-        duration: 0.8,
+        boxShadow: isMobile ? "0 0 10px rgba(255, 255, 255, 0.6)" : "0 0 20px rgba(255, 255, 255, 0.8)",
+        duration: isMobile ? 0.5 : 0.8,
         ease: "power2.inOut"
       });
       
       gsap.to(".counter-number", {
         opacity: 0,
-        duration: 0.5,
+        duration: isMobile ? 0.3 : 0.5,
         ease: "power2.out",
-        delay: 0.3
+        delay: isMobile ? 0.2 : 0.3
       });
     }
-  }, [beamColor, shouldShowLoader]);
+  }, [beamColor, shouldShowLoader, isMobile]);
 
-  // Exit animation
+  // Optimized exit animation
   useGSAP(() => {
     if (startOutAnimation && shouldShowLoader) {
       const outTl = gsap.timeline({
@@ -298,48 +347,48 @@ function Loader() {
       outAnimations.forEach(({ selector, props }) => {
         outTl.to(selector, {
           ...props,
-          duration: 1,
+          duration: isMobile ? 0.7 : 1,
           ease: "power3.in",
-          stagger: 0.03
+          stagger: isMobile ? 0.02 : 0.03
         }, 0);
       });
       
       outTl.to(".beam-circle", {
         scale: 1.2,
-        duration: 0.2,
+        duration: isMobile ? 0.15 : 0.2,
         ease: "power1.in"
       })
       .to(".beam-circle", {
-        scale: 50,
-        duration: 0.5,
+        scale: isMobile ? 30 : 50, // Smaller scale on mobile
+        duration: isMobile ? 0.4 : 0.5,
         ease: "power2.in"
       })
       .to(".loader-content", {
         backgroundColor: "#ffffff",
-        duration: 0.4,
+        duration: isMobile ? 0.3 : 0.4,
         ease: "power2.in"
       }, "-=0.4")
       .to(".main-loader", {
         opacity: 0,
-        duration: 0.5,
+        duration: isMobile ? 0.3 : 0.5,
         ease: "power2.inOut"
       });
     }
-  }, [startOutAnimation, shouldShowLoader]);
+  }, [startOutAnimation, shouldShowLoader, isMobile]);
 
-  // Responsive sizes
+  // Optimized responsive sizes
   const beamSize = useMemo(() => {
-    const baseSize = Math.min(windowSize.width, windowSize.height) * 0.3;
+    const baseSize = Math.min(windowSize.width, windowSize.height) * (isMobile ? 0.25 : 0.3);
     return {
-      width: Math.max(80, Math.min(baseSize, 200)),
-      height: Math.max(80, Math.min(baseSize, 200))
+      width: Math.max(isMobile ? 60 : 80, Math.min(baseSize, isMobile ? 150 : 200)),
+      height: Math.max(isMobile ? 60 : 80, Math.min(baseSize, isMobile ? 150 : 200))
     };
-  }, [windowSize]);
+  }, [windowSize, isMobile]);
 
   const fontSize = useMemo(() => {
-    const baseSize = Math.min(windowSize.width, windowSize.height) * 0.07;
-    return Math.max(18, Math.min(baseSize, 32));
-  }, [windowSize]);
+    const baseSize = Math.min(windowSize.width, windowSize.height) * (isMobile ? 0.05 : 0.07);
+    return Math.max(isMobile ? 14 : 18, Math.min(baseSize, isMobile ? 24 : 32));
+  }, [windowSize, isMobile]);
 
   if (!shouldShowLoader) {
     return null;
@@ -347,16 +396,20 @@ function Loader() {
 
   return (
     <div 
+      ref={mainLoaderRef}
       className="main-loader fixed inset-0 z-[9999] w-screen overflow-hidden" 
       style={{
         height: 'calc(var(--vh, 1vh) * 100)',
         touchAction: 'none',
         overscrollBehavior: 'none',
         willChange: 'opacity',
-        backfaceVisibility: 'hidden'
+        backfaceVisibility: 'hidden',
+        contain: 'layout style paint',
+        isolation: 'isolate'
       }}
     >
-      <div className="loader-content h-full w-full bg-black overflow-hidden relative">
+      <div className="loader-content h-full w-full bg-black overflow-hidden relative"
+           style={{ contain: 'layout style paint' }}>
         <div className="loader-allStrips h-full w-full">
           {/* Centered Beam Circle */}
           <div 
@@ -368,7 +421,8 @@ function Loader() {
               top: '50%',
               transform: 'translate(-50%, -50%)',
               willChange: 'transform, background-color',
-              transformStyle: 'preserve-3d'
+              transformStyle: 'preserve-3d',
+              contain: 'layout style paint'
             }}
           >
             <div 
@@ -379,7 +433,8 @@ function Loader() {
                 willChange: 'opacity',
                 fontSize: `${fontSize}px`,
                 lineHeight: 1,
-                transform: 'translateZ(0)'
+                transform: 'translateZ(0)',
+                contain: 'layout style paint'
               }}
             >
               {percentage}%
@@ -390,18 +445,23 @@ function Loader() {
             {stripPositions.map((position, index) => (
               <React.Fragment key={index}>
                 <div 
-                  className={`strip1 h-4 w-[2900px] bg-[#070304] absolute ${position} rotate-45 overflow-hidden`}
+                  className={`strip1 h-4 bg-[#070304] absolute ${position} rotate-45 overflow-hidden`}
                   style={{ 
+                    width: isMobile ? '2000px' : '2900px',
                     willChange: 'width, opacity',
-                    transform: 'translateZ(0)'
+                    transform: 'translateZ(0)',
+                    contain: 'layout style paint'
                   }}
                 >
                   <div className="strip-text-animation whitespace-nowrap absolute w-[200%] left-0">
-                    {Array.from({ length: 20 }, (_, i) => (
+                    {Array.from({ length: isMobile ? 12 : 20 }, (_, i) => (
                       <span 
                         key={i} 
                         className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block"
-                        style={{ willChange: 'transform' }}
+                        style={{ 
+                          willChange: 'transform',
+                          contain: 'layout style paint'
+                        }}
                       >
                         LOADING
                       </span>
@@ -410,18 +470,23 @@ function Loader() {
                 </div>
                 
                 <div 
-                  className={`strip2 h-4 w-[2900px] bg-[#070304] absolute ${position} -rotate-45 overflow-hidden`}
+                  className={`strip2 h-4 bg-[#070304] absolute ${position} -rotate-45 overflow-hidden`}
                   style={{ 
+                    width: isMobile ? '2000px' : '2900px',
                     willChange: 'width, opacity',
-                    transform: 'translateZ(0)'
+                    transform: 'translateZ(0)',
+                    contain: 'layout style paint'
                   }}
                 >
                   <div className="strip-text-animation-reverse whitespace-nowrap absolute w-[200%] left-0">
-                    {Array.from({ length: 20 }, (_, i) => (
+                    {Array.from({ length: isMobile ? 12 : 20 }, (_, i) => (
                       <span 
                         key={i} 
                         className="text-black/85 text-[12px] font-black px-2 tracking-wide inline-block"
-                        style={{ willChange: 'transform' }}
+                        style={{ 
+                          willChange: 'transform',
+                          contain: 'layout style paint'
+                        }}
                       >
                         LOADING
                       </span>
@@ -437,7 +502,8 @@ function Loader() {
               className="web-vertical h-5 w-[100vh] flex absolute rotate-90 overflow-hidden top-1/2 left-1/2 -translate-x-1/2"
               style={{ 
                 willChange: 'width, height, opacity',
-                transform: 'translateZ(0)'
+                transform: 'translateZ(0)',
+                contain: 'layout style paint'
               }}
             >
               <div className="web-vertical-1 h-full w-full bg-gradient-to-r from-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden">
@@ -451,9 +517,10 @@ function Loader() {
             <div 
               className="web-horizontal h-5 flex absolute top-1/2 overflow-hidden"
               style={{ 
-                width: '2900px',
+                width: isMobile ? '2000px' : '2900px',
                 willChange: 'width, opacity',
-                transform: 'translateZ(0)'
+                transform: 'translateZ(0)',
+                contain: 'layout style paint'
               }}
             >
               <div className="web-horizontal-1 h-full w-full bg-gradient-to-r from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-start overflow-hidden">
@@ -474,9 +541,10 @@ function Loader() {
                 key={index} 
                 className={`${className} h-5 flex absolute top-1/2 ${rotation}`}
                 style={{ 
-                  width: '2500px',
+                  width: isMobile ? '1800px' : '2500px',
                   willChange: 'width, opacity',
-                  transform: 'translateZ(0)'
+                  transform: 'translateZ(0)',
+                  contain: 'layout style paint'
                 }}
               >
                 <div className={`${className}-1 h-full w-full bg-gradient-to-r from-yellow-400 via-yellow-400/40 to-black/50 lg:to-black/90 flex items-center justify-center overflow-hidden`}>
