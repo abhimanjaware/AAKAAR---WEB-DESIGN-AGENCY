@@ -1,305 +1,208 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-// Register the ScrollTrigger plugin
-gsap.registerPlugin(ScrollTrigger);
 
 function Service() {
   const cardsContainerRef = useRef(null);
   const cardRefs = useRef([]);
   const headingRef = useRef(null);
   const subheadingRef = useRef(null);
-  const cardsWrapperRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
-  // Service cards data with unique images
+  // Service cards data
   const services = [
     {
       id: "web-dev",
-      title: <><span className='text-white'>WEBSITE</span> <br /> DESIGNING</>,
-      description: <>Website : Brand's powerful voice. <span className='font-normal'>Our Expertise Shines.</span>"</>,
-      hoverContent: <>Our web development services ensure your site doesn't just look great but performs seamlessly. With a <span className='text-white font-medium'>focus on speed, reliability, and user-friendly interfaces</span>, we create high-performance websites using the latest technologies.</>,
+      title: "WEBSITE DESIGNING",
+      description: "Website: Brand's powerful voice. Our Expertise Shines.",
+      hoverContent: "Our web development services ensure your site doesn't just look great but performs seamlessly. With a focus on speed, reliability, and user-friendly interfaces, we create high-performance websites using the latest technologies.",
       image: "https://i.pinimg.com/736x/de/c3/ca/dec3ca638bdde241f60535f1f5f6fb60.jpg"
     },
     {
       id: "uiux",
-      title: <><span className='text-white'>UI/UX</span> <br /> DESIGNING</>,
-      description: <>"Great design doesn't just look beautiful—it feels <span className='font-normal'>effortless</span>."</>,
-      hoverContent: <>It's simple: Happy users are loyal users. A <span className='font-medium'>well-designed UX/UI</span> not only makes your site more enjoyable to use but directly impacts your conversion rates.</>,
+      title: "UI/UX DESIGNING",
+      description: "Great design doesn't just look beautiful—it feels effortless.",
+      hoverContent: "It's simple: Happy users are loyal users. A well-designed UX/UI not only makes your site more enjoyable to use but directly impacts your conversion rates.",
       image: "https://i.pinimg.com/736x/86/fa/8f/86fa8f4c4d3095b3a6285c5ba19a63f0.jpg"
     },
     {
       id: "ecom",
-      title: <><span className='text-white'>E-COMMERCE</span> <br />SOLUTIONS</>,
-      description: <>"Maximize your online store: <span className='font-normal'>More sales, more revenue.</span>"</>,
-      hoverContent: <>More Sales = More Revenue. A seamless e-commerce experience can make or break a sale. We ensure that your store is optimized for conversions, with fast load times, <span className='font-medium'>easy navigation, and secure transactions.</span></>,
+      title: "E-COMMERCE SOLUTIONS",
+      description: "Maximize your online store: More sales, more revenue.",
+      hoverContent: "More Sales = More Revenue. A seamless e-commerce experience can make or break a sale. We ensure that your store is optimized for conversions, with fast load times, easy navigation, and secure transactions.",
       image: "https://i.pinimg.com/236x/f6/07/74/f607746a5c42427d706d890bf610b514.jpg"
     },
     {
       id: "seo",
-      title: <> SEO & <span className='text-white text-[] '>PERFORMANCE OPTIMISATION</span></>,
-      description: <>"Your website might be beautiful, but <span className='font-normal'>if it's not seen, it can't succeed</span>."</>,
-      hoverContent: <>We don't just build pretty websites—we make sure they <span className='font-medium'>reach your audience</span>. Our SEO and performance optimization services ensure that your site ranks higher in search results and loads instantly.</>,
+      title: "SEO & PERFORMANCE OPTIMISATION",
+      description: "Your website might be beautiful, but if it's not seen, it can't succeed.",
+      hoverContent: "We don't just build pretty websites—we make sure they reach your audience. Our SEO and performance optimization services ensure that your site ranks higher in search results and loads instantly.",
       image: "https://i.pinimg.com/736x/37/31/8f/37318f0ba9e315873af521edb2cb40ee.jpg"
     },
     {
       id: "content",
-      title: <> CONTENT <span className='whitespace-nowrap'>STRATEGY &</span> <br /><span className='text-white text-[] '>COPYWRITING.</span></>,
-      description: <>"Words that sell. <span className='font-normal'>Content that connects</span>."</>,
-      hoverContent: <>Great design needs great content. Our content strategy and copywriting services help tell your story in a way that <span className='font-medium'>engages, educates, and inspires action.</span></>,
+      title: "CONTENT STRATEGY & COPYWRITING",
+      description: "Words that sell. Content that connects.",
+      hoverContent: "Great design needs great content. Our content strategy and copywriting services help tell your story in a way that engages, educates, and inspires action.",
       image: "https://i.pinimg.com/236x/87/dd/33/87dd33c929b6ee141fb3bd43d5ec0eb3.jpg"
     },
     {
       id: "brand",
-      title: <>BRAND IDENTITY  <br /> <span className='text-white'>LOGO</span> DESIGN</>,
-      description: <>Brand identity : <span className='font-normal'>Your business story at every touchpoint</span>.</>,
-      hoverContent: <>It's simple: Happy users are loyal users. A <span className='font-medium'>well-designed UX/UI</span> not only makes your site more enjoyable to use but directly impacts your conversion rates.</>,
+      title: "BRAND IDENTITY LOGO DESIGN",
+      description: "Brand identity: Your business story at every touchpoint.",
+      hoverContent: "It's simple: Happy users are loyal users. A well-designed UX/UI not only makes your site more enjoyable to use but directly impacts your conversion rates.",
       image: "https://i.pinimg.com/736x/bd/f0/3e/bdf03ef4b82f104508b12a59945ae445.jpg"
     }
   ];
 
-  // Initialize cardRefs
+  // Initialize component
   useEffect(() => {
     cardRefs.current = Array(services.length).fill(null);
     setIsLoaded(true);
   }, [services.length]);
 
-  // Faster fade-in and stagger animation
+  // Simple intersection observer for visibility
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !cardsContainerRef.current) return;
 
-    let masterTimeline;
-    let scrollTriggerInstances = [];
-    
-    // Store current ref values to avoid stale references in cleanup
-    const currentHeadingRef = headingRef.current;
-    const currentSubheadingRef = subheadingRef.current;
-    const currentCardRefs = [...cardRefs.current];
-    const currentCardsContainerRef = cardsContainerRef.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
 
-    // Hide all elements initially
-    gsap.set([currentHeadingRef, currentSubheadingRef], {
-      opacity: 0,
-      y: 20
-    });
+    observer.observe(cardsContainerRef.current);
 
-    gsap.set(currentCardRefs, {
-      opacity: 0,
-      y: 20
-    });
-
-    // Create master timeline for reveal animations
-    masterTimeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: currentCardsContainerRef,
-        start: "top 75%",
-        toggleActions: "play none none none",
-      }
-    });
-    
-    scrollTriggerInstances.push(masterTimeline.scrollTrigger);
-
-    // Faster heading animations
-    masterTimeline.to(currentHeadingRef, {
-      opacity: 1,
-      y: 0,
-      duration: 0.25,
-      ease: "power2.out"
-    });
-
-    masterTimeline.to(currentSubheadingRef, {
-      opacity: 1,
-      y: 0,
-      duration: 0.3,
-      ease: "power2.out"
-    }, "-=0.15");
-
-    // Faster cards reveal animation with reduced stagger
-    if (currentCardRefs.every(ref => ref)) {
-      masterTimeline.to(currentCardRefs, {
-        opacity: 1,
-        y: 0,
-        stagger: 0.08,
-        duration: 0.4,
-        ease: "power2.out"
-      }, "-=0.1");
-    }
-
-    // Cleanup function
     return () => {
-      scrollTriggerInstances.forEach(st => {
-        if (st) st.kill();
-      });
-      
-      if (masterTimeline) {
-        masterTimeline.kill();
-      }
-
-      ScrollTrigger.getAll().forEach(st => st.kill());
-      gsap.killTweensOf(currentCardRefs);
-      gsap.killTweensOf([currentHeadingRef, currentSubheadingRef]);
+      observer.disconnect();
     };
   }, [isLoaded]);
 
+  const handleWhatsAppClick = () => {
+    window.open('https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!', '_blank');
+  };
+
+  const handleCallClick = () => {
+    window.open('tel:+911234567890', '_blank');
+  };
+
+  const handleQuoteClick = (e) => {
+    e.preventDefault();
+    const newWindow = window.open('AAKAAR - QUOTATION (2).pdf', '_blank');
+    if (newWindow) {
+      newWindow.document.title = 'Aakaar Quote Request';
+    }
+  };
+
   return (
-    <>
-      <div 
-        id='services'
-        className='bg-[#D9D9D9] flex flex-col flex-wrap min-h-screen my-20 items-center justify-center p-4 md:p-8'
-        ref={cardsContainerRef}
-      >
-        <div className="h-fit w-full text-center pb-8 pt-8 overflow-hidden">
+    <div 
+      id='services'
+      className='bg-gray-200 min-h-screen py-10 px-4 sm:px-6 lg:px-8'
+      ref={cardsContainerRef}
+    >
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-12">
           <h3 
-            className='service-head text-[2rem] md:text-[3rem] text-[#27170e] pb-2 font-[Roboto_Flex] font-black tracking-wide leading-none overflow-hidden'
+            className={`text-3xl sm:text-4xl lg:text-5xl font-black text-gray-800 mb-4 transition-all duration-700 ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
             ref={headingRef}
           >
-            HERE'S WHAT <br /> WE ARE KNOW FOR
+            HERE'S WHAT<br />WE ARE KNOWN FOR
           </h3>
-          <span 
-            className='service-subhead text-zinc-900/90 font-[Dancing_Script] font-extralight text-[1.4rem] leading-none md:text-[1.8rem] overflow-hidden'
+          <p 
+            className={`text-lg sm:text-xl text-gray-700 font-light transition-all duration-700 delay-200 ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
             ref={subheadingRef}
           >
             Converting your brand into flawless aesthetics.
-          </span>
+          </p>
         </div>
 
-        <div 
-          className="w-full max-w-[104rem] md:py-24 pb-12 flex flex-wrap justify-center gap-6"
-          ref={cardsWrapperRef}
-        >
+        {/* Services Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {services.map((service, index) => (
             <div 
               key={service.id}
-              className={`${service.id}-service h-96 w-full sm:w-[calc(100%-2rem)] md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1rem)] rounded-xl justify-center flex flex-wrap group border-[.001px] border-zinc-800/30 overflow-hidden`}
+              className={`group relative h-80 sm:h-96 rounded-xl overflow-hidden border border-gray-300 transition-all duration-700 ${
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
+              style={{ transitionDelay: `${300 + index * 100}ms` }}
               ref={el => cardRefs.current[index] = el}
             >
-              <div className="relative h-full w-full rounded-xl overflow-hidden">
-                {/* Background image */}
-                <div className="absolute inset-0 bg-gray-300 transition-all duration-500 opacity-100 group-hover:scale-[1.1] blur-[1.3px] ease-in-out group-hover:blur-[2px]">
-                  <div className="h-full w-full bg-stone-700">
-                    <img 
-                      src={service.image} 
-                      alt={`${service.id} Service`} 
-                      className="h-full w-full object-cover object-center" 
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                </div>
-               
-                {/* Main content */}
-                <div className="absolute inset-0 transition-all px-8 ease-in-out duration-500 transform group-hover:-translate-y-full">
-                  <div className="h-full w-full flex items-center justify-center flex-col p-6">
-                    <p className="font-black text-[2.7rem] leading-none text-center text-zinc-100/90">
-                      {service.title}
-                    </p>
-                    <span className="font-light text-[18px] font-[Roboto_Flex] pt-5 pb-6 leading-none text-zinc-200 text-center">
-                      {service.description}
-                    </span>
-                    <div className="service-btn block lg:hidden">
-                      <div className="service-Button bg-[#D9D9D9] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-4 py-0 relative rounded-full flex items-center justify-center gap-0 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
-                        <a href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!" target="_blank" className="relative h-[.5rem] flex items-center justify-center">
-                          <div className="flex flex-col justify-center items-center relative">
-                            <span className="block font-bold leading-none font-[Familjen_Grotesk] transition-all ease-in duration-300 text-[#27170e] text-center tracking-tighter group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap text-[18px]">
-                              Book Now
-                            </span>
-                            
-                            <span className="absolute font-bold leading-none font-[Familjen_Grotesk] text-[18px] transition-all ease-in duration-300 group-active:text-[#27170e] text-[#D9D9D9] text-center tracking-tighter opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap">
-                              Book Now
-                            </span>
-                          </div>
-                        </a>
-                        
-                        <div className='p-3 rounded-full group-hover:-rotate-45 leading-none scale-[0.3] transition-all ease-in group-hover:duration-300 group-hover:scale-100 text-[#27170e] group-active:bg-[#27170e] group-active:text-[#D9D9D9] bg-[#27170e] group-hover:text-[#27170e] group-hover:bg-[#D9D9D9]'>
-                          <ion-icon name="arrow-forward-outline" size="small"></ion-icon>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              {/* Background Image */}
+              <div className="absolute inset-0">
+                <img 
+                  src={service.image} 
+                  alt={`${service.title} Service`} 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+              </div>
+              
+              {/* Default Content */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center transition-transform duration-500 group-hover:-translate-y-full">
+                <h4 className="text-white text-2xl sm:text-3xl font-black mb-4 leading-tight">
+                  {service.title}
+                </h4>
+                <p className="text-gray-200 text-sm sm:text-base font-light mb-6">
+                  {service.description}
+                </p>
                 
-                {/* Secondary content */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/60 to-black rounded-xl transition-all ease-in-out duration-500 transform translate-y-full group-hover:translate-y-0 z-0">
-                  <div className="h-full w-full flex flex-col items-center justify-center p-8 text-white">
-                    <span className="text-xl text-center font-[Roboto_Flex] py-7 leading-none font-light">
-                      {service.hoverContent}
-                    </span>
-
-                    <div className="cta-btn relative z-10">
-                      <div className="nav-Button group bg-[#D9D9D9] text-[#27170e] w-fit leading-none border-[1px] border-[#D9D9D9]/30 hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-4 py-0 relative rounded-full flex items-center justify-center gap-3 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group focus-within:scale-95">
-                        <a href="https://wa.me/919689762896?text=Hi%20there%2C%20I%20visited%20your%20website%20and%20wanted%20to%20connect!" target="_blank" className="relative h-[3rem] flex items-center justify-center">
-                          <div className="flex flex-col justify-center items-center relative">
-                            <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[3vw] transition-all ease-in duration-300 text-center tracking-tighter opacity-100 group-focus:opacity-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
-                              Let's Connect
-                            </span>
-                          </div>
-                        </a>
-
-                        <div className="p-1 rounded-full group-hover:-rotate-45 scale-[0] transition-all ease-in group-hover:duration-500 group-hover:scale-100 text-[#27170e] group-active:bg-[#27170e] group-active:text-[#D9D9D9] bg-[#27170e] group-hover:text-[#D9D9D9] group-hover:bg-[#27170e]">
-                          <ion-icon name="arrow-forward-outline" size="small"></ion-icon>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {/* Mobile Book Now Button */}
+                <button 
+                  onClick={handleWhatsAppClick}
+                  className="bg-gray-200 text-gray-800 px-6 py-2 rounded-full font-bold text-sm transition-all duration-300 hover:bg-gray-800 hover:text-gray-200 active:scale-95 sm:hidden"
+                >
+                  Book Now →
+                </button>
+              </div>
+              
+              {/* Hover Content */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col items-center justify-center p-6 text-center transition-transform duration-500 translate-y-full group-hover:translate-y-0">
+                <p className="text-white text-base sm:text-lg font-light mb-8 leading-relaxed">
+                  {service.hoverContent}
+                </p>
+                
+                <button 
+                  onClick={handleWhatsAppClick}
+                  className="bg-gray-200 text-gray-800 px-8 py-3 rounded-full font-bold transition-all duration-300 hover:bg-gray-800 hover:text-gray-200 active:scale-95 flex items-center gap-2"
+                >
+                  Let's Connect
+                  <span className="transform transition-transform duration-300 group-hover:rotate-45">→</span>
+                </button>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="flex items-center justify-start gap-2 md:gap-6">
-          <div className="cta-btn mt-4">
-            <div className="nav-Button bg-[#fff] w-fit leading-none hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-3 py-1 md:px-4 lg:py-1 relative rounded-full flex items-center justify-center gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  const newWindow = window.open('AAKAAR - QUOTATION (2).pdf', '_blank');
-                  if (newWindow) {
-                    newWindow.document.title = 'Aakaar Quote Request';
-                  }
-                }}
-                className="relative h-[3.5rem] flex items-center justify-center group"
-              >
-                <div className="flex flex-col justify-center items-center relative">
-                  <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[3.5vw] transition-all ease-in duration-300 text-[#27170e] text-center tracking-normal group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
-                    GET QUOTE
-                  </span>
-
-                  <span className="absolute font-bold leading-none font-[Familjen_Grotesk] text-[3.5vw] transition-all ease-in duration-300 group-active:text-[#27170e] text-[#D9D9D9] text-center tracking-normal opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
-                    GET QUOTE
-                  </span>
-                </div>
-              </a>
-              <div className='p-3 rounded-full group-hover:-rotate-45 scale-[0.4] transition-all ease-in group-hover:duration-300 group-hover:scale-100 text-[#27170e] group-active:bg-[#27170e] group-active:text-[#D9D9D9] bg-[#27170e] group-hover:text-[#27170e] group-hover:bg-[#D9D9D9]'>
-                <ion-icon name="arrow-forward-outline" size="small"></ion-icon>
-              </div>
-            </div>
-          </div>  
-              
-          <div className="cta-btn mt-4">
-            <div className="nav-Button bg-[#fff] w-fit leading-none hover:scale-[0.9] active:bg-[#D9D9D9] active:scale-[1] px-3 py-1 md:px-4 relative rounded-full flex items-center justify-center gap-4 overflow-hidden font-[Quicksand] transition-all ease-in duration-300 group hover:bg-[#27170e] focus-within:scale-95">
-              <a href="tel:+911234567890" target="_blank" className="relative h-[3.5rem] flex items-center justify-center">
-                <div className="flex flex-col justify-center items-center relative">
-                  <span className="block font-bold leading-none font-[Familjen_Grotesk] text-[3.5vw] transition-all ease-in duration-300 text-[#27170e] text-center tracking-normal group-hover:translate-y-[-100%] group-focus:translate-y-[-100%] group-hover:opacity-0 group-focus:opacity-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
-                    BOOK A CALL
-                  </span>
-                  
-                  <span className="absolute font-bold leading-none font-[Familjen_Grotesk] text-[3.5vw] transition-all ease-in duration-300 group-active:text-[#27170e] text-[#D9D9D9] text-center tracking-normal opacity-0 group-hover:opacity-100 group-focus:opacity-100 translate-y-[100%] group-hover:translate-y-0 group-focus:translate-y-0 whitespace-nowrap md:text-[2.5vw] lg:text-[1vw]">
-                    BOOK A CALL
-                  </span>
-                </div>
-              </a>
-              
-              <div className='p-3 rounded-full group-hover:-rotate-45 scale-[0.4] transition-all ease-in group-hover:duration-300 group-hover:scale-100 text-[#27170e] group-active:bg-[#27170e] group-active:text-[#D9D9D9] bg-[#27170e] group-hover:text-[#27170e] group-hover:bg-[#D9D9D9]'>
-                <ion-icon name="arrow-forward-outline" size="small"></ion-icon>
-              </div>
-            </div>
-          </div>  
+        {/* CTA Buttons */}
+        <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-700 delay-1000 ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}>
+          <button 
+            onClick={handleQuoteClick}
+            className="w-full sm:w-auto bg-white text-gray-800 px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:bg-gray-800 hover:text-white active:scale-95 flex items-center justify-center gap-3"
+          >
+            GET QUOTE
+            <span className="transform transition-transform duration-300 hover:rotate-45">→</span>
+          </button>
+          
+          <button 
+            onClick={handleCallClick}
+            className="w-full sm:w-auto bg-white text-gray-800 px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:bg-gray-800 hover:text-white active:scale-95 flex items-center justify-center gap-3"
+          >
+            BOOK A CALL
+            <span className="transform transition-transform duration-300 hover:rotate-45">→</span>
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
